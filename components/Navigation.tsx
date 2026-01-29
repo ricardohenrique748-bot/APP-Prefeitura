@@ -17,23 +17,22 @@ const Navigation: React.FC<NavigationProps> = ({ activeScreen, onNavigate }) => 
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-card-dark/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 pb-safe z-50 max-w-md mx-auto rounded-t-3xl shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.3)]">
+    <nav className="w-full bg-white/90 dark:bg-card-dark/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 z-50 rounded-t-3xl shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.3)] shrink-0">
       <div className="flex items-center justify-between px-2 py-3">
         {navItems.map((item) => {
           const isActive = activeScreen === item.screen;
-          
+
           return (
             <button
               key={item.screen}
               onClick={() => onNavigate(item.screen)}
-              className={`flex flex-col items-center gap-1 transition-all duration-300 relative flex-1 ${
-                isActive ? 'text-primary scale-105' : 'text-slate-400 opacity-70 hover:opacity-100'
-              }`}
+              className={`flex flex-col items-center gap-1 transition-all duration-300 relative flex-1 ${isActive ? 'text-primary scale-105' : 'text-slate-400 opacity-70 hover:opacity-100'
+                }`}
             >
               {isActive && (
                 <div className="absolute -top-1 w-6 h-1 bg-primary rounded-full"></div>
               )}
-              <span className={`material-symbols-outlined text-[22px] ${isActive ? 'fill-1' : ''}`}>
+              <span className={`material-symbols-outlined text-[20px] ${isActive ? 'fill-1' : ''}`}>
                 {item.icon}
               </span>
               <span className="text-[9px] font-bold tracking-tighter whitespace-nowrap">{item.label}</span>

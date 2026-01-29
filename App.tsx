@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { AppScreen, Vehicle } from './types';
+import DeviceSimulator from './components/DeviceSimulator';
 import Dashboard from './components/Dashboard';
 import ShiftStart from './components/ShiftStart';
 import ShiftEnd from './components/ShiftEnd';
@@ -222,19 +223,21 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark max-w-md mx-auto shadow-2xl overflow-x-hidden relative transition-colors duration-300">
-      {!isAuthenticated ? (
-        <Login onLogin={() => setIsAuthenticated(true)} />
-      ) : (
-        <>
-          <Header currentScreen={currentScreen} avatarUrl={userAvatar} />
-          <main className={`flex-1 pb-24 overflow-y-auto`}>
-            {renderScreen()}
-          </main>
-          <Navigation activeScreen={currentScreen} onNavigate={(screen) => setCurrentScreen(screen)} />
-        </>
-      )}
-    </div>
+    <DeviceSimulator>
+      <div className="flex flex-col h-full min-h-full bg-background-light dark:bg-background-dark w-full overflow-x-hidden relative transition-colors duration-300">
+        {!isAuthenticated ? (
+          <Login onLogin={() => setIsAuthenticated(true)} />
+        ) : (
+          <>
+            <Header currentScreen={currentScreen} avatarUrl={userAvatar} />
+            <main className={`flex-1 overflow-y-auto`}>
+              {renderScreen()}
+            </main>
+            <Navigation activeScreen={currentScreen} onNavigate={(screen) => setCurrentScreen(screen)} />
+          </>
+        )}
+      </div>
+    </DeviceSimulator>
   );
 };
 
