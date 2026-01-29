@@ -47,22 +47,19 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
     if (canvasRef.current && selectedVehicle) {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.strokeStyle = '#1754cf';
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-      }
 
       const resizeCanvas = () => {
         const rect = canvas.parentElement?.getBoundingClientRect();
-        if (rect) {
-          canvas.width = rect.width;
-          canvas.height = rect.height;
-          if (ctx) {
-            ctx.strokeStyle = '#1754cf';
-            ctx.lineWidth = 3;
-          }
+        if (rect && ctx) {
+          const dpr = window.devicePixelRatio || 1;
+          canvas.width = rect.width * dpr;
+          canvas.height = rect.height * dpr;
+
+          ctx.scale(dpr, dpr);
+          ctx.strokeStyle = '#1754cf';
+          ctx.lineWidth = 3;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
         }
       };
 
@@ -72,7 +69,8 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
     }
   }, [selectedVehicle]);
 
-  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+  const startDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
     setIsDrawing(true);
     setHasSigned(true);
     const ctx = canvasRef.current?.getContext('2d');
@@ -83,7 +81,7 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
     }
   };
 
-  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+  const draw = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
     const ctx = canvasRef.current?.getContext('2d');
     if (ctx) {
@@ -93,7 +91,15 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
     }
   };
 
-  const stopDrawing = () => setIsDrawing(false);
+  const stopDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    setIsDrawing(false);
+    const ctx = canvasRef.current?.getContext('2d');
+    if (ctx) {
+      ctx.beginPath(); // Reset path to prevent connectinglines
+    }
+  };
+
   const clearSignature = () => {
     const canvas = canvasRef.current;
     if (canvas) {
@@ -103,13 +109,11 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
     }
   };
 
-  const getPos = (e: React.MouseEvent | React.TouchEvent) => {
+  const getPos = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-    return { x: clientX - rect.left, y: clientY - rect.top };
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
   };
 
   const handleSelectVehicle = (v: Vehicle) => {
@@ -575,11 +579,11 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
       </section>
 
       <section className="space-y-3">
-        <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">Assinatura do Operador</h3>
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">Assinatura do Motorista</h3>
         <div className="bg-white dark:bg-card-dark rounded-2xl border border-slate-200 dark:border-slate-800 p-2 shadow-sm">
           <div className="h-36 bg-slate-50 dark:bg-[#111621] rounded-xl relative flex items-center justify-center border border-slate-100 dark:border-slate-800 overflow-hidden touch-none">
             {!hasSigned && <span className="text-[10px] font-bold text-slate-300 dark:text-slate-700 uppercase tracking-widest pointer-events-none italic">Assine aqui</span>}
-            <canvas ref={canvasRef} onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing} onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={stopDrawing} className="absolute inset-0 cursor-crosshair w-full h-full" />
+            <canvas ref={canvasRef} onPointerDown={startDrawing} onPointerMove={draw} onPointerUp={stopDrawing} onPointerLeave={stopDrawing} className="absolute inset-0 cursor-crosshair w-full h-full touch-none" />
             <button onClick={clearSignature} className="absolute bottom-3 right-3 size-10 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-xl flex items-center justify-center text-slate-400 active:text-primary transition-all shadow-md border border-slate-200 dark:border-slate-700 z-10"><span className="material-symbols-outlined text-lg">refresh</span></button>
           </div>
         </div>
