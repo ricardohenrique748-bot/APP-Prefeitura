@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
+import { User } from '../types';
 
 interface LoginProps {
-  onLogin: () => void;
+  onLogin: (user: User) => void;
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
@@ -31,7 +32,17 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setError('');
 
     setTimeout(() => {
+      // Logic for Admin
       if ((email === 'ricardo.luz@prefeitura.gov.br' || email === 'ricardo.luz@eunaman.com.br') && password === '123456') {
+        const adminUser: User = {
+          id: '1',
+          name: 'Ricardo Luz',
+          email: email,
+          role: 'ADMIN',
+          status: 'ACTIVE',
+          avatar: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&h=400&fit=crop"
+        };
+
         if (rememberMe) {
           localStorage.setItem('fleet_master_remember_email', email);
           localStorage.setItem('fleet_master_remember_me', 'true');
@@ -39,8 +50,21 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           localStorage.removeItem('fleet_master_remember_email');
           localStorage.removeItem('fleet_master_remember_me');
         }
-        onLogin();
-      } else {
+        onLogin(adminUser);
+      }
+      // Logic for Motorista
+      else if (email === 'motorista@prefeitura.gov.br' && password === '123456') {
+        const driverUser: User = {
+          id: '2',
+          name: 'Motorista Padrão',
+          email: email,
+          role: 'MOTORISTA',
+          status: 'ACTIVE',
+          avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400&h=400&fit=crop"
+        };
+        onLogin(driverUser);
+      }
+      else {
         setError('E-mail ou senha incorretos.');
         setLoading(false);
       }
@@ -71,7 +95,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <span className="material-symbols-outlined text-4xl text-white -rotate-12 font-black">local_shipping</span>
           </div>
           <div className="text-center">
-            <h1 className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic">Fleet Master</h1>
+            <h1 className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic">SMART TECH</h1>
             <p className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Sistemas de Gestão Operacional</p>
           </div>
         </div>

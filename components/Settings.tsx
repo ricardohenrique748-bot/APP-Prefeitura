@@ -9,21 +9,24 @@ interface SettingsProps {
   onToggleTheme: () => void;
   avatarUrl: string;
   onAvatarChange: (newAvatar: string) => void;
+  userRole: string;
 }
 
-const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onToggleTheme, avatarUrl, onAvatarChange }) => {
+const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onToggleTheme, avatarUrl, onAvatarChange, userRole }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const menuItems = [
-    { icon: 'local_shipping', label: 'Gestão de Frotas', screen: AppScreen.FLEET_MANAGEMENT, color: 'text-amber-500' },
-    { icon: 'account_balance_wallet', label: 'Centros de Custo', screen: AppScreen.COST_CENTERS, color: 'text-primary' },
-    { icon: 'store', label: 'Gestão de Fornecedores', screen: AppScreen.SUPPLIER_MANAGEMENT, color: 'text-emerald-400' },
-    { icon: 'assignment_late', label: 'Backlog de Serviços', screen: AppScreen.BACKLOG, color: 'text-rose-500' },
-    { icon: 'tire_repair', label: 'Boletim de Pneus', screen: AppScreen.TIRE_BULLETIN, color: 'text-accent-success' },
-    { icon: 'assessment', label: 'Relatórios Avançados', screen: AppScreen.REPORTS, color: 'text-blue-400' },
-    { icon: 'group', label: 'Gestão de Usuários', screen: AppScreen.USER_MANAGEMENT, color: 'text-indigo-400' },
-    { icon: 'sync', label: 'Sincronização Manual', color: 'text-slate-400' }
+  const allMenuItems = [
+    { icon: 'local_shipping', label: 'Gestão de Frotas', screen: AppScreen.FLEET_MANAGEMENT, color: 'text-amber-500', roles: ['ADMIN', 'GESTOR'] },
+    { icon: 'account_balance_wallet', label: 'Centros de Custo', screen: AppScreen.COST_CENTERS, color: 'text-primary', roles: ['ADMIN', 'GESTOR'] },
+    { icon: 'store', label: 'Gestão de Fornecedores', screen: AppScreen.SUPPLIER_MANAGEMENT, color: 'text-emerald-400', roles: ['ADMIN', 'GESTOR'] },
+    { icon: 'assignment_late', label: 'Backlog de Serviços', screen: AppScreen.BACKLOG, color: 'text-rose-500', roles: ['ADMIN', 'GESTOR'] },
+    { icon: 'tire_repair', label: 'Boletim de Pneus', screen: AppScreen.TIRE_BULLETIN, color: 'text-accent-success', roles: ['ADMIN', 'GESTOR', 'MOTORISTA', 'OPERADOR'] },
+    { icon: 'assessment', label: 'Relatórios Avançados', screen: AppScreen.REPORTS, color: 'text-blue-400', roles: ['ADMIN', 'GESTOR'] },
+    { icon: 'group', label: 'Gestão de Usuários', screen: AppScreen.USER_MANAGEMENT, color: 'text-indigo-400', roles: ['ADMIN'] },
+    { icon: 'sync', label: 'Sincronização Manual', color: 'text-slate-400', roles: ['ADMIN', 'GESTOR', 'MOTORISTA', 'OPERADOR'] }
   ];
+
+  const menuItems = allMenuItems.filter(item => !item.roles || item.roles.includes(userRole));
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -45,12 +48,12 @@ const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onT
   return (
     <div className="p-4 space-y-6 pb-10">
       {/* Hidden File Input */}
-      <input 
-        type="file" 
-        accept="image/*" 
-        className="hidden" 
-        ref={fileInputRef} 
-        onChange={handleFileChange} 
+      <input
+        type="file"
+        accept="image/*"
+        className="hidden"
+        ref={fileInputRef}
+        onChange={handleFileChange}
       />
 
       {/* Profile Card */}
@@ -58,13 +61,13 @@ const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onT
         <div className="flex items-center gap-4">
           <div className="relative">
             <div className="size-16 rounded-full border-2 border-primary overflow-hidden bg-slate-200">
-              <img 
-                src={avatarUrl} 
+              <img
+                src={avatarUrl}
                 className="w-full h-full object-cover"
                 alt="Ricardo Luz"
               />
             </div>
-            <button 
+            <button
               onClick={triggerFileSelect}
               className="absolute -bottom-1 -right-1 size-7 rounded-full bg-primary text-white flex items-center justify-center border-2 border-white dark:border-card-dark transition-all active:scale-90 shadow-md"
             >
@@ -81,7 +84,7 @@ const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onT
       {/* Theme Toggle Section */}
       <section className="space-y-2">
         <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-2">Visual do Sistema</h4>
-        <button 
+        <button
           onClick={onToggleTheme}
           className="w-full bg-white dark:bg-card-dark rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between shadow-sm active:scale-[0.98] transition-all group"
         >
@@ -107,7 +110,7 @@ const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onT
         <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-2">Configurações e Gestão</h4>
         <div className="bg-white dark:bg-card-dark rounded-2xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden transition-colors">
           {menuItems.map((item, idx) => (
-            <button 
+            <button
               key={idx}
               onClick={() => item.screen && onAction(item.screen)}
               className="w-full flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors"
@@ -125,7 +128,7 @@ const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onT
       </section>
 
       {/* Logout */}
-      <button 
+      <button
         onClick={onLogout}
         className="w-full bg-slate-100 dark:bg-slate-800/40 text-accent-error py-4 rounded-xl font-black text-xs uppercase tracking-widest active:scale-[0.98] transition-transform"
       >
@@ -138,7 +141,7 @@ const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onT
           Criado por: Ricardo Luz • (99) 91754-2322
         </p>
         <p className="text-[8px] font-bold uppercase tracking-tighter text-slate-500 dark:text-slate-600 opacity-60">
-          FleetMaster v2.4.0 (Build 102)
+          SMART TECH v2.4.0 (Build 102)
         </p>
       </div>
     </div>

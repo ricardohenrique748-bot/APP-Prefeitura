@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { AppScreen, Vehicle } from './types';
+import { AppScreen, Vehicle, User } from './types';
 import DeviceSimulator from './components/DeviceSimulator';
 import Dashboard from './components/Dashboard';
 import ShiftStart from './components/ShiftStart';
@@ -76,7 +76,8 @@ const DEFAULT_VEHICLES: Vehicle[] = [
 ];
 
 const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const isAuthenticated = !!currentUser;
   const [currentScreen, setCurrentScreen] = useState<AppScreen>(AppScreen.DASHBOARD);
 
   const [userAvatar, setUserAvatar] = useState(() => {
@@ -216,7 +217,15 @@ const App: React.FC = () => {
       case AppScreen.BACKLOG:
         return <Backlog onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.SETTINGS:
-        return <Settings isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode(!isDarkMode)} onAction={(screen) => setCurrentScreen(screen)} avatarUrl={userAvatar} onAvatarChange={(nav) => setUserAvatar(nav)} onLogout={() => { setIsAuthenticated(false); setCurrentScreen(AppScreen.DASHBOARD); }} />;
+        return <Settings
+          isDarkMode={isDarkMode}
+          onToggleTheme={() => setIsDarkMode(!isDarkMode)}
+          onAction={(screen) => setCurrentScreen(screen)}
+          avatarUrl={userAvatar}
+          onAvatarChange={(nav) => setUserAvatar(nav)}
+          onLogout={() => { setCurrentUser(null); setCurrentScreen(AppScreen.DASHBOARD); }}
+          userRole={currentUser?.role || 'OPERADOR'}
+        />;
       default:
         return <Dashboard orders={orders} vehicles={vehicles} fuelEntries={fuelEntries} onAction={(screen) => setCurrentScreen(screen)} />;
     }
@@ -226,7 +235,7 @@ const App: React.FC = () => {
     <DeviceSimulator>
       <div className="flex flex-col h-full min-h-full bg-background-light dark:bg-background-dark w-full overflow-x-hidden relative transition-colors duration-300">
         {!isAuthenticated ? (
-          <Login onLogin={() => setIsAuthenticated(true)} />
+          <Login onLogin={(user) => setCurrentUser(user)} />
         ) : (
           <>
             <Header currentScreen={currentScreen} avatarUrl={userAvatar} />

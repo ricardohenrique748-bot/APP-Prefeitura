@@ -53,7 +53,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'GESTOR' | 'OPERADOR';
+  role: 'ADMIN' | 'GESTOR' | 'OPERADOR' | 'MOTORISTA';
   status: 'ACTIVE' | 'INACTIVE';
   avatar?: string;
 }
