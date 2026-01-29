@@ -235,7 +235,7 @@ const App: React.FC = () => {
     <DeviceSimulator>
       <div className="flex flex-col h-full min-h-full bg-background-light dark:bg-background-dark w-full overflow-x-hidden relative transition-colors duration-300">
         {!isAuthenticated ? (
-          <Login onLogin={(user) => setCurrentUser(user)} />
+          <Login onLogin={(user) => setCurrentUser(user)} isDarkMode={isDarkMode} />
         ) : (
           <>
             <Header currentScreen={currentScreen} avatarUrl={userAvatar} />
