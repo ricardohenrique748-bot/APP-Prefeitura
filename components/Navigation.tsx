@@ -26,13 +26,13 @@ const Navigation: React.FC<NavigationProps> = ({ activeScreen, onNavigate }) => 
             <button
               key={item.screen}
               onClick={() => onNavigate(item.screen)}
-              className={`flex flex-col items-center gap-1 transition-all duration-300 relative flex-1 ${isActive ? 'text-primary scale-105' : 'text-slate-400 opacity-70 hover:opacity-100'
+              className={`flex flex-col items-center justify-center gap-1 transition-all duration-300 relative flex-1 h-14 ${isActive ? 'text-primary' : 'text-slate-400 opacity-70 hover:opacity-100'
                 }`}
             >
               {isActive && (
-                <div className="absolute -top-1 w-6 h-1 bg-primary rounded-full"></div>
+                <div className="absolute top-0 w-12 h-1 rounded-b-lg bg-primary shadow-[0_4px_12px_rgba(23,84,207,0.4)]"></div>
               )}
-              <span className={`material-symbols-outlined text-[20px] ${isActive ? 'fill-1' : ''}`}>
+              <span className={`material-symbols-outlined text-[22px] mt-1 transition-transform ${isActive ? 'scale-110 fill-1' : ''}`}>
                 {item.icon}
               </span>
               <span className="text-[9px] font-bold tracking-tighter whitespace-nowrap">{item.label}</span>

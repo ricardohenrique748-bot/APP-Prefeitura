@@ -6,9 +6,10 @@ interface DeviceSimulatorProps {
   currentScreen: AppScreen;
   onNavigate: (screen: AppScreen) => void;
   showSidebar?: boolean;
+  userAvatar?: string;
 }
 
-const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({ children, currentScreen, onNavigate, showSidebar = true }) => {
+const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({ children, currentScreen, onNavigate, showSidebar = true, userAvatar }) => {
   const menuItems = [
     { icon: 'dashboard', label: 'Painel', screen: AppScreen.DASHBOARD },
     { icon: 'local_shipping', label: 'Frota', screen: AppScreen.FLEET_MANAGEMENT },
@@ -20,19 +21,22 @@ const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({ children, currentScre
   ];
 
   return (
-    <div className="min-h-screen w-full bg-[#f8fafc] dark:bg-[#0f1218] transition-colors duration-300 flex text-slate-900 dark:text-white font-sans">
+    <div className="min-h-screen w-full bg-white dark:bg-[#0f1218] transition-colors duration-300 flex text-slate-900 dark:text-white font-sans">
 
       {/* Desktop Sidebar */}
       {showSidebar && (
         <aside className="hidden md:flex w-64 flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a1c23] flex-shrink-0 relative z-20">
-          <div className="p-6 flex items-center gap-3">
-            <div className="size-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/30">
-              <span className="material-symbols-outlined text-2xl">local_shipping</span>
-            </div>
-            <div>
-              <h1 className="font-black italic text-lg tracking-tighter uppercase leading-none">Smart<span className="text-primary">Fleet</span></h1>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gestão Municipal</p>
-            </div>
+          <div className="h-32 flex items-center justify-center py-4 px-4 border-b border-slate-100 dark:border-slate-800/50 overflow-hidden">
+            <img
+              src="/logo-light.png"
+              alt="Smart Tech"
+              className="h-full w-auto object-contain scale-150 dark:hidden transition-all hover:scale-[1.6] duration-300"
+            />
+            <img
+              src="/logo-dark.png"
+              alt="Smart Tech"
+              className="h-full w-auto object-contain scale-150 hidden dark:block transition-all hover:scale-[1.6] duration-300"
+            />
           </div>
 
           <nav className="flex-1 px-4 space-y-1.5 py-4 overflow-y-auto">
@@ -53,11 +57,13 @@ const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({ children, currentScre
           </nav>
 
           <div className="p-4 border-t border-slate-200 dark:border-slate-800">
-            <div className="bg-slate-50 dark:bg-white/5 p-3 rounded-xl flex items-center gap-3">
-              <div className="size-8 rounded-full bg-slate-200 dark:bg-slate-700"></div>
-              <div>
-                <p className="text-xs font-bold">Ricardo Luz</p>
-                <p className="text-[9px] text-slate-500 uppercase">Gestor</p>
+            <div className="bg-slate-50 dark:bg-white/5 p-3 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
+              <div className="size-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-slate-200 dark:border-slate-600">
+                {userAvatar ? <img src={userAvatar} className="w-full h-full object-cover" alt="User" /> : null}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold truncate dark:text-white">Ricardo Luz</p>
+                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider truncate">Gestor de Frota</p>
               </div>
             </div>
           </div>

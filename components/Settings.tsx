@@ -46,7 +46,7 @@ const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onT
   };
 
   return (
-    <div className="p-4 space-y-4 pb-10">
+    <div className="p-4 md:p-8 space-y-4 md:space-y-8 pb-10">
       {/* Hidden File Input */}
       <input
         type="file"
@@ -57,10 +57,10 @@ const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onT
       />
 
       {/* Profile Card */}
-      <section className="bg-white dark:bg-card-dark p-3 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 transition-colors">
-        <div className="flex items-center gap-3">
+      <section className="bg-white dark:bg-card-dark p-3 md:p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 transition-colors">
+        <div className="flex items-center gap-3 md:gap-6">
           <div className="relative">
-            <div className="size-14 rounded-full border-2 border-primary overflow-hidden bg-slate-200">
+            <div className="size-14 md:size-24 rounded-full border-2 md:border-4 border-primary overflow-hidden bg-slate-200">
               <img
                 src={avatarUrl}
                 className="w-full h-full object-cover"
@@ -69,59 +69,62 @@ const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onT
             </div>
             <button
               onClick={triggerFileSelect}
-              className="absolute -bottom-1 -right-1 size-6 rounded-full bg-primary text-white flex items-center justify-center border-2 border-white dark:border-card-dark transition-all active:scale-90 shadow-md"
+              className="absolute -bottom-1 -right-1 md:bottom-0 md:right-0 size-6 md:size-8 rounded-full bg-primary text-white flex items-center justify-center border-2 border-white dark:border-card-dark transition-all active:scale-90 shadow-md hover:bg-primary/90"
             >
-              <span className="material-symbols-outlined text-[12px]">edit</span>
+              <span className="material-symbols-outlined text-[12px] md:text-base">edit</span>
             </button>
           </div>
           <div>
-            <h3 className="font-bold text-base dark:text-white transition-colors">Ricardo Luz</h3>
-            <p className="text-[10px] text-slate-500 font-medium">Gestor de Frota • ID #8842</p>
+            <h3 className="font-bold text-base md:text-2xl dark:text-white transition-colors">Ricardo Luz</h3>
+            <p className="text-[10px] md:text-sm text-slate-500 font-medium mt-0.5">Gestor de Frota • ID #8842</p>
           </div>
         </div>
       </section>
 
       {/* Theme Toggle Section */}
-      <section className="space-y-1.5">
-        <h4 className="text-[9px] font-bold uppercase tracking-widest text-slate-500 px-2">Visual do Sistema</h4>
+      <section className="space-y-1.5 md:space-y-3">
+        <h4 className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-slate-500 px-2">Visual do Sistema</h4>
         <button
           onClick={onToggleTheme}
-          className="w-full bg-white dark:bg-card-dark rounded-2xl border border-slate-200 dark:border-slate-800 p-3 flex items-center justify-between shadow-sm active:scale-[0.98] transition-all group"
+          className="w-full bg-white dark:bg-card-dark rounded-2xl border border-slate-200 dark:border-slate-800 p-3 md:p-5 flex items-center justify-between shadow-sm active:scale-[0.98] transition-all group hover:shadow-md"
         >
-          <div className="flex items-center gap-3">
-            <div className={`size-9 rounded-xl flex items-center justify-center transition-colors ${isDarkMode ? 'bg-indigo-500/10 text-indigo-400' : 'bg-amber-500/10 text-amber-500'}`}>
-              <span className="material-symbols-outlined fill-1 text-lg">
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className={`size-9 md:size-12 rounded-xl flex items-center justify-center transition-colors ${isDarkMode ? 'bg-indigo-500/10 text-indigo-400' : 'bg-amber-500/10 text-amber-500'}`}>
+              <span className="material-symbols-outlined fill-1 text-lg md:text-2xl">
                 {isDarkMode ? 'dark_mode' : 'light_mode'}
               </span>
             </div>
             <div className="text-left">
-              <span className="text-xs font-bold block dark:text-white">{isDarkMode ? 'Modo Escuro' : 'Modo Claro'}</span>
-              <span className="text-[9px] text-slate-500 font-medium uppercase tracking-tight">Toque para alternar</span>
+              <span className="text-xs md:text-lg font-bold block dark:text-white">{isDarkMode ? 'Modo Escuro' : 'Modo Claro'}</span>
+              <span className="text-[9px] md:text-xs text-slate-500 font-medium uppercase tracking-tight">Toque para alternar</span>
             </div>
           </div>
-          <div className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${isDarkMode ? 'bg-primary' : 'bg-slate-200'}`}>
-            <div className={`absolute top-0.5 size-4 bg-white rounded-full shadow-md transition-all duration-300 ${isDarkMode ? 'left-5' : 'left-0.5'}`}></div>
+          <div className={`w-10 h-5 md:w-14 md:h-7 rounded-full relative transition-colors duration-300 ${isDarkMode ? 'bg-primary' : 'bg-slate-200'}`}>
+            <div className={`absolute top-0.5 md:top-1 size-4 md:size-5 bg-white rounded-full shadow-md transition-all duration-300 ${isDarkMode ? 'left-5 md:left-8' : 'left-0.5 md:left-1'}`}></div>
           </div>
         </button>
       </section>
 
       {/* Menu Section */}
-      <section className="space-y-1.5">
-        <h4 className="text-[9px] font-bold uppercase tracking-widest text-slate-500 px-2">Configurações e Gestão</h4>
-        <div className="bg-white dark:bg-card-dark rounded-2xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden transition-colors">
+      <section className="space-y-1.5 md:space-y-3">
+        <h4 className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-slate-500 px-2">Configurações e Gestão</h4>
+        <div className="md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 bg-white dark:bg-card-dark md:bg-transparent md:dark:bg-transparent rounded-2xl md:rounded-none border border-slate-200 dark:border-slate-800 md:border-none divide-y divide-slate-100 dark:divide-slate-800 md:divide-y-0 overflow-hidden transition-colors">
           {menuItems.map((item, idx) => (
             <button
               key={idx}
               onClick={() => item.screen && onAction(item.screen)}
-              className="w-full flex items-center justify-between p-3 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors"
+              className="w-full flex items-center justify-between p-3 md:p-6 md:bg-white md:dark:bg-card-dark md:rounded-2xl md:border md:border-slate-200 md:dark:border-slate-800 md:shadow-sm active:bg-slate-50 dark:active:bg-slate-800/50 transition-all hover:shadow-md hover:-translate-y-1"
             >
-              <div className="flex items-center gap-3">
-                <div className={`size-9 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center transition-colors ${item.color}`}>
-                  <span className="material-symbols-outlined text-lg">{item.icon}</span>
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className={`size-9 md:size-12 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center transition-colors ${item.color}`}>
+                  <span className="material-symbols-outlined text-lg md:text-2xl">{item.icon}</span>
                 </div>
-                <span className="text-xs font-bold dark:text-white">{item.label}</span>
+                <div className="text-left">
+                  <span className="text-xs md:text-sm font-bold dark:text-white block">{item.label}</span>
+                  <span className="hidden md:block text-[10px] text-slate-400 font-medium opacity-80">Gerenciar</span>
+                </div>
               </div>
-              <span className="material-symbols-outlined text-slate-300 text-lg">chevron_right</span>
+              <span className="material-symbols-outlined text-slate-300 text-lg md:hidden">chevron_right</span>
             </button>
           ))}
         </div>
@@ -130,17 +133,17 @@ const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onT
       {/* Logout */}
       <button
         onClick={onLogout}
-        className="w-full bg-slate-100 dark:bg-slate-800/40 text-accent-error py-3 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-[0.98] transition-transform"
+        className="w-full bg-slate-100 dark:bg-slate-800/40 hover:bg-red-50 dark:hover:bg-red-900/10 text-accent-error py-3 md:py-4 rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest active:scale-[0.98] transition-all"
       >
         Sair da Conta
       </button>
 
       {/* Version & Developer Info */}
       <div className="text-center pt-6 space-y-0.5">
-        <p className="text-[9px] font-black uppercase tracking-widest dark:text-slate-400 italic">
+        <p className="text-[9px] md:text-xs font-black uppercase tracking-widest dark:text-slate-400 italic">
           Criado por: Ricardo Luz • (99) 91754-2322
         </p>
-        <p className="text-[7px] font-bold uppercase tracking-tighter text-slate-500 dark:text-slate-600 opacity-60">
+        <p className="text-[7px] md:text-[10px] font-bold uppercase tracking-tighter text-slate-500 dark:text-slate-600 opacity-60">
           SMART TECH v2.4.0 (Build 102)
         </p>
       </div>

@@ -90,7 +90,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, isDarkMode = false }) => {
 
   return (
     <div className="flex flex-col h-full min-h-screen bg-background-light dark:bg-background-dark items-center justify-center p-8 pb-24 transition-colors duration-300">
-      <div className="w-full max-w-sm space-y-10 animate-in fade-in duration-500">
+      <div className="w-full max-w-sm space-y-10 animate-in fade-in duration-500 md:scale-110">
         <div className="flex flex-col items-center gap-0">
           <div className="w-full max-w-[340px] h-24 flex items-center justify-center mix-blend-multiply dark:mix-blend-screen overflow-hidden">
             <img
