@@ -70,33 +70,40 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
   }, [selectedVehicle]);
 
   const startDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    e.preventDefault(); // Stop scrolling/refresh gestures
     e.currentTarget.setPointerCapture(e.pointerId);
-    setIsDrawing(true);
-    setHasSigned(true);
+
     const ctx = canvasRef.current?.getContext('2d');
     if (ctx) {
-      const pos = getPos(e);
+      const { x, y } = getPos(e);
       ctx.beginPath();
-      ctx.moveTo(pos.x, pos.y);
+      ctx.moveTo(x, y);
+      setIsDrawing(true);
+      setHasSigned(true);
     }
   };
 
   const draw = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
     if (!isDrawing) return;
+
     const ctx = canvasRef.current?.getContext('2d');
     if (ctx) {
-      const pos = getPos(e);
-      ctx.lineTo(pos.x, pos.y);
+      const { x, y } = getPos(e);
+      ctx.lineTo(x, y);
       ctx.stroke();
     }
   };
 
   const stopDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    e.currentTarget.releasePointerCapture(e.pointerId);
-    setIsDrawing(false);
-    const ctx = canvasRef.current?.getContext('2d');
-    if (ctx) {
-      ctx.beginPath(); // Reset path to prevent connectinglines
+    e.preventDefault();
+    if (isDrawing) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+      setIsDrawing(false);
+      const ctx = canvasRef.current?.getContext('2d');
+      if (ctx) {
+        ctx.closePath();
+      }
     }
   };
 
@@ -110,10 +117,12 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
   };
 
   const getPos = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return { x: 0, y: 0 };
-    const rect = canvas.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    // nativeEvent.offsetX provides coordinates relative to the target node (canvas)
+    // allowing for correct positioning even with CSS scaling or offsets.
+    return {
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY
+    };
   };
 
   const handleSelectVehicle = (v: Vehicle) => {
@@ -583,7 +592,15 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
         <div className="bg-white dark:bg-card-dark rounded-2xl border border-slate-200 dark:border-slate-800 p-2 shadow-sm">
           <div className="h-36 bg-slate-50 dark:bg-[#111621] rounded-xl relative flex items-center justify-center border border-slate-100 dark:border-slate-800 overflow-hidden touch-none">
             {!hasSigned && <span className="text-[10px] font-bold text-slate-300 dark:text-slate-700 uppercase tracking-widest pointer-events-none italic">Assine aqui</span>}
-            <canvas ref={canvasRef} onPointerDown={startDrawing} onPointerMove={draw} onPointerUp={stopDrawing} onPointerLeave={stopDrawing} className="absolute inset-0 cursor-crosshair w-full h-full touch-none" />
+            <canvas
+              ref={canvasRef}
+              onPointerDown={startDrawing}
+              onPointerMove={draw}
+              onPointerUp={stopDrawing}
+              onPointerLeave={stopDrawing}
+              className="absolute inset-0 cursor-crosshair w-full h-full touch-none"
+              style={{ touchAction: 'none' }}
+            />
             <button onClick={clearSignature} className="absolute bottom-3 right-3 size-10 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-xl flex items-center justify-center text-slate-400 active:text-primary transition-all shadow-md border border-slate-200 dark:border-slate-700 z-10"><span className="material-symbols-outlined text-lg">refresh</span></button>
           </div>
         </div>
