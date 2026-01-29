@@ -327,12 +327,12 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
 
   if (!selectedVehicle) {
     return (
-      <div className="p-6 space-y-6 bg-background-light dark:bg-background-dark min-h-screen">
+      <div className="p-4 space-y-4 bg-background-light dark:bg-background-dark min-h-screen">
         <header>
-          <h2 className="text-2xl font-black italic tracking-tighter uppercase text-slate-900 dark:text-white">Selecione o Veículo</h2>
-          <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Escolha um caminhão para iniciar a inspeção</p>
+          <h2 className="text-xl font-black italic tracking-tighter uppercase text-slate-900 dark:text-white">Selecione o Veículo</h2>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Escolha um caminhão para iniciar a inspeção</p>
         </header>
-        <div className="grid gap-4">
+        <div className="grid gap-3">
           {vehicles.filter(v => v.status === 'ACTIVE').map(v => {
             const isActive = activeShifts.includes(v.id);
             return (
@@ -340,22 +340,22 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
                 key={v.id}
                 onClick={() => !isActive && handleSelectVehicle(v)}
                 className={`
-                  border p-5 rounded-[1.5rem] flex items-center justify-between transition-all group shadow-sm relative overflow-hidden
+                  border p-4 rounded-3xl flex items-center justify-between transition-all group shadow-sm relative overflow-hidden
                   ${isActive
                     ? 'bg-accent-error/5 border-accent-error/30 cursor-default'
                     : 'bg-white dark:bg-card-dark border-slate-200 dark:border-slate-800 cursor-pointer active:scale-[0.98]'
                   }
                 `}
               >
-                {isActive && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-accent-error"></div>}
+                {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent-error"></div>}
 
-                <div className="flex items-center gap-4 text-left">
-                  <div className={`size-12 rounded-xl flex items-center justify-center transition-colors ${isActive ? 'bg-accent-error/10 text-accent-error' : 'bg-primary/10 text-primary'}`}>
-                    <span className="material-symbols-outlined text-2xl">{getVehicleIcon(v.type)}</span>
+                <div className="flex items-center gap-3 text-left">
+                  <div className={`size-10 rounded-xl flex items-center justify-center transition-colors ${isActive ? 'bg-accent-error/10 text-accent-error' : 'bg-primary/10 text-primary'}`}>
+                    <span className="material-symbols-outlined text-xl">{getVehicleIcon(v.type)}</span>
                   </div>
                   <div>
-                    <h3 className={`text-xl font-black italic tracking-tighter ${isActive ? 'text-accent-error' : 'text-slate-900 dark:text-white'}`}>{v.plate}</h3>
-                    <p className={`text-[10px] font-bold uppercase tracking-widest ${isActive ? 'text-accent-error/70' : 'text-slate-500'}`}>
+                    <h3 className={`text-base font-black italic tracking-tighter ${isActive ? 'text-accent-error' : 'text-slate-900 dark:text-white'}`}>{v.plate}</h3>
+                    <p className={`text-[9px] font-bold uppercase tracking-widest ${isActive ? 'text-accent-error/70' : 'text-slate-500'}`}>
                       {isActive ? 'EM OPERAÇÃO' : `${v.model}`}
                     </p>
                   </div>
@@ -364,88 +364,88 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
                 {isActive ? (
                   <button
                     onClick={(e) => { e.stopPropagation(); onFinishShift(v.id); }}
-                    className="h-10 px-4 bg-accent-error text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-accent-error/20 flex items-center gap-2 hover:bg-accent-error/90 active:scale-95 transition-all"
+                    className="h-8 px-3 bg-accent-error text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-accent-error/20 flex items-center gap-1.5 hover:bg-accent-error/90 active:scale-95 transition-all"
                   >
                     <span>Finalizar</span>
-                    <span className="material-symbols-outlined text-sm">stop_circle</span>
+                    <span className="material-symbols-outlined text-xs">stop_circle</span>
                   </button>
                 ) : (
-                  <span className="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors">chevron_right</span>
+                  <span className="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors text-xl">chevron_right</span>
                 )}
               </div>
             );
           })}
         </div>
-        <button onClick={onBack} className="w-full py-4 text-[10px] font-black uppercase text-slate-500 tracking-widest italic">Voltar ao Painel</button>
+        <button onClick={onBack} className="w-full py-3 text-[10px] font-black uppercase text-slate-500 tracking-widest italic">Voltar ao Painel</button>
       </div>
     );
   }
 
   return (
-    <div className="p-4 space-y-6 pb-20 bg-background-light dark:bg-background-dark min-h-screen transition-colors duration-300">
+    <div className="p-4 space-y-4 pb-20 bg-background-light dark:bg-background-dark min-h-screen transition-colors duration-300">
       <div className="flex items-center">
         <button
           onClick={() => setSelectedVehicle(null)}
-          className="flex items-center gap-2 text-slate-500 hover:text-primary active:scale-95 transition-all p-2 -ml-2"
+          className="flex items-center gap-2 text-slate-500 hover:text-primary active:scale-95 transition-all p-1 -ml-1"
         >
-          <span className="material-symbols-outlined">arrow_back</span>
-          <span className="text-xs font-black uppercase tracking-widest">Voltar a Seleção</span>
+          <span className="material-symbols-outlined text-xl">arrow_back</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">Voltar a Seleção</span>
         </button>
       </div>
 
-      <section className="bg-white dark:bg-card-dark rounded-[1.5rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Veículo Selecionado</h3>
+      <section className="bg-white dark:bg-card-dark rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Veículo Selecionado</h3>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black text-primary bg-primary/10 px-3 py-1 rounded-md">ID #{selectedVehicle.id}</span>
-            <button onClick={() => setSelectedVehicle(null)} className="size-7 bg-slate-50 dark:bg-[#111621] rounded-md flex items-center justify-center text-slate-400 active:rotate-180 transition-transform">
-              <span className="material-symbols-outlined text-xs">sync</span>
+            <span className="text-[9px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded">ID #{selectedVehicle.id}</span>
+            <button onClick={() => setSelectedVehicle(null)} className="size-6 bg-slate-50 dark:bg-[#111621] rounded flex items-center justify-center text-slate-400 active:rotate-180 transition-transform">
+              <span className="material-symbols-outlined text-[10px]">sync</span>
             </button>
           </div>
         </div>
-        <div className="flex items-center gap-5">
-          <div className="size-14 rounded-2xl bg-slate-50 dark:bg-[#111621] border border-slate-200 dark:border-slate-800 flex items-center justify-center text-primary">
-            <span className="material-symbols-outlined text-3xl">{getVehicleIcon(selectedVehicle.type)}</span>
+        <div className="flex items-center gap-4">
+          <div className="size-12 rounded-xl bg-slate-50 dark:bg-[#111621] border border-slate-200 dark:border-slate-800 flex items-center justify-center text-primary">
+            <span className="material-symbols-outlined text-2xl">{getVehicleIcon(selectedVehicle.type)}</span>
           </div>
           <div>
-            <h2 className="text-3xl font-black italic tracking-tighter text-slate-900 dark:text-white leading-none">{selectedVehicle.plate}</h2>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">{selectedVehicle.type} • {selectedVehicle.model}</p>
+            <h2 className="text-2xl font-black italic tracking-tighter text-slate-900 dark:text-white leading-none">{selectedVehicle.plate}</h2>
+            <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">{selectedVehicle.type} • {selectedVehicle.model}</p>
           </div>
         </div>
-        <div className="mt-8">
-          <label className="flex flex-col gap-3">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">KM Inicial Atualizado</span>
-            <input type="number" value={km} onChange={(e) => setKm(e.target.value)} className="w-full h-16 bg-slate-50 dark:bg-[#111621] border border-slate-200 dark:border-slate-800 rounded-2xl px-6 text-2xl font-mono font-black text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary transition-all" />
+        <div className="mt-5">
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">KM Inicial Atualizado</span>
+            <input type="number" value={km} onChange={(e) => setKm(e.target.value)} className="w-full h-12 bg-slate-50 dark:bg-[#111621] border border-slate-200 dark:border-slate-800 rounded-xl px-4 text-xl font-mono font-black text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary transition-all" />
           </label>
         </div>
       </section>
 
-      <section className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-1">Empresa</label>
-          <div className="w-full h-14 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center px-6 shadow-sm">
-            <span className="text-xs font-black text-slate-900 dark:text-white uppercase italic">{formData.company}</span>
+      <section className="space-y-3">
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest px-1">Empresa</label>
+          <div className="w-full h-12 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-xl flex items-center px-4 shadow-sm">
+            <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase italic">{formData.company}</span>
           </div>
         </div>
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-1">Centro de Custo</label>
-          <div className="w-full h-14 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center px-6 shadow-sm">
-            <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight italic">{formData.costCenter}</span>
-            <span className="ml-auto material-symbols-outlined text-primary text-sm opacity-50">lock</span>
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest px-1">Centro de Custo</label>
+          <div className="w-full h-12 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-xl flex items-center px-4 shadow-sm">
+            <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tight italic">{formData.costCenter}</span>
+            <span className="ml-auto material-symbols-outlined text-sm opacity-50">lock</span>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-1">Motorista</label>
-            <div className="w-full h-14 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center px-4 text-slate-900 dark:text-white">
-              <span className="text-[10px] font-black uppercase italic">{formData.driver}</span>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest px-1">Motorista</label>
+            <div className="w-full h-12 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-xl flex items-center px-4 text-slate-900 dark:text-white">
+              <span className="text-[9px] font-black uppercase italic">{formData.driver}</span>
             </div>
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-1">Data/Hora</label>
-            <div className="w-full h-14 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-center gap-2">
-              <span className="text-[10px] font-bold text-slate-500 dark:text-white/80">{formData.date.split('-').reverse().join('/')}</span>
-              <span className="text-[10px] font-black text-primary italic">{formData.time}</span>
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest px-1">Data/Hora</label>
+            <div className="w-full h-12 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-center gap-2">
+              <span className="text-[9px] font-bold text-slate-500 dark:text-white/80">{formData.date.split('-').reverse().join('/')}</span>
+              <span className="text-[9px] font-black text-primary italic">{formData.time}</span>
             </div>
           </div>
         </div>
@@ -456,26 +456,26 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
         <div className="space-y-2">
           {categories.map((cat) => (
             <div key={cat.id} className="bg-white dark:bg-card-dark rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-              <button onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)} className="w-full flex items-center justify-between p-5 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <span className={`material-symbols-outlined ${activeCategory === cat.id ? 'text-primary' : 'text-slate-400'}`}>{cat.icon}</span>
-                  <span className="text-xs font-black uppercase tracking-tight italic text-slate-900 dark:text-white">{cat.label}</span>
+              <button onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)} className="w-full flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors">
+                <div className="flex items-center gap-2.5">
+                  <span className={`material-symbols-outlined text-lg ${activeCategory === cat.id ? 'text-primary' : 'text-slate-400'}`}>{cat.icon}</span>
+                  <span className="text-[11px] font-black uppercase tracking-tight italic text-slate-900 dark:text-white">{cat.label}</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-[9px] font-black text-slate-500 bg-slate-50 dark:bg-[#111621] px-2 py-0.5 rounded">{cat.items.filter(i => checks[i.id]).length}/{cat.items.length}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[8px] font-black text-slate-500 bg-slate-50 dark:bg-[#111621] px-1.5 py-0.5 rounded">{cat.items.filter(i => checks[i.id]).length}/{cat.items.length}</span>
                   <span className={`material-symbols-outlined transition-transform duration-300 ${activeCategory === cat.id ? 'rotate-180 text-primary' : 'text-slate-300'}`}>expand_more</span>
                 </div>
               </button>
               {activeCategory === cat.id && (
-                <div className="px-5 pb-5 space-y-1 animate-in slide-in-from-top-2 duration-300">
-                  {cat.items.map((item) => <div key={item.id} className="flex flex-col py-4 border-b border-slate-100 dark:border-slate-800 last:border-none gap-3">
-                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase italic tracking-tighter">{item.label}</span>
+                <div className="px-4 pb-4 space-y-1 animate-in slide-in-from-top-2 duration-300">
+                  {cat.items.map((item) => <div key={item.id} className="flex flex-col py-3 border-b border-slate-100 dark:border-slate-800 last:border-none gap-2">
+                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase italic tracking-tighter">{item.label}</span>
                     <div className="flex gap-2">
                       <button
                         onClick={() => setChecks({ ...checks, [item.id]: true })}
-                        className={`flex-1 h-10 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${checks[item.id] ? 'bg-accent-success text-white shadow-lg shadow-accent-success/20' : 'bg-slate-50 dark:bg-slate-800 text-slate-400'}`}
+                        className={`flex-1 h-8 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 ${checks[item.id] ? 'bg-accent-success text-white shadow-md shadow-accent-success/20' : 'bg-slate-50 dark:bg-slate-800 text-slate-400'}`}
                       >
-                        <span className="material-symbols-outlined text-base">check</span>
+                        <span className="material-symbols-outlined text-sm">check</span>
                         SIM
                       </button>
                       <button
@@ -483,9 +483,9 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
                           setChecks({ ...checks, [item.id]: false });
                           setHasDamage(true);
                         }}
-                        className={`flex-1 h-10 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${!checks[item.id] ? 'bg-accent-error text-white shadow-lg shadow-accent-error/20' : 'bg-slate-50 dark:bg-slate-800 text-slate-400'}`}
+                        className={`flex-1 h-8 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 ${!checks[item.id] ? 'bg-accent-error text-white shadow-md shadow-accent-error/20' : 'bg-slate-50 dark:bg-slate-800 text-slate-400'}`}
                       >
-                        <span className="material-symbols-outlined text-base">close</span>
+                        <span className="material-symbols-outlined text-sm">close</span>
                         NÃO
                       </button>
                     </div>
@@ -503,20 +503,20 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
           <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Reportar Avaria</h3>
           <label className="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" checked={hasDamage} onChange={(e) => setHasDamage(e.target.checked)} className="sr-only peer" />
-            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-error"></div>
+            <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent-error"></div>
           </label>
         </div>
 
         {hasDamage && (
-          <div className="bg-white dark:bg-card-dark rounded-2xl border border-slate-200 dark:border-slate-800 p-5 space-y-4 animate-in slide-in-from-top-4 duration-300 shadow-sm">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Tipo de Avaria</label>
-              <div className="flex flex-wrap gap-2">
+          <div className="bg-white dark:bg-card-dark rounded-2xl border border-slate-200 dark:border-slate-800 p-4 space-y-3 animate-in slide-in-from-top-4 duration-300 shadow-sm">
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest px-1">Tipo de Avaria</label>
+              <div className="flex flex-wrap gap-1.5">
                 {['Mecânica', 'Elétrica', 'Pneus', 'Estética / Lataria'].map(type => (
                   <button
                     key={type}
                     onClick={() => setDamageType(type)}
-                    className={`px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${damageType === type ? 'bg-accent-error text-white border-accent-error' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-100 dark:border-slate-700'}`}
+                    className={`px-2.5 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all border ${damageType === type ? 'bg-accent-error text-white border-accent-error' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-100 dark:border-slate-700'}`}
                   >
                     {type}
                   </button>
@@ -524,14 +524,14 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Gravidade</label>
-              <div className="grid grid-cols-3 gap-2">
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest px-1">Gravidade</label>
+              <div className="grid grid-cols-3 gap-1.5">
                 {(['LEVE', 'MÉDIA', 'GRAVE'] as const).map(level => (
                   <button
                     key={level}
                     onClick={() => setDamageLevel(level)}
-                    className={`h-10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${damageLevel === level ? 'bg-accent-error text-white border-accent-error' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-100 dark:border-slate-700'}`}
+                    className={`h-8 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${damageLevel === level ? 'bg-accent-error text-white border-accent-error' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-100 dark:border-slate-700'}`}
                   >
                     {level}
                   </button>
@@ -539,27 +539,26 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Descrição do Problema</label>
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest px-1">Descrição</label>
               <textarea
                 value={damageDesc}
                 onChange={(e) => setDamageDesc(e.target.value)}
-                className="w-full h-24 bg-slate-50 dark:bg-[#111621] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-accent-error/50 resize-none"
+                className="w-full h-20 bg-slate-50 dark:bg-[#111621] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-[11px] outline-none focus:ring-2 focus:ring-accent-error/50 resize-none"
                 placeholder="Descreva o problema encontrado..."
               ></textarea>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Fotos da Avaria</label>
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest px-1">Fotos</label>
               <div className="flex gap-2 overflow-x-auto pb-2">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="size-20 flex-none rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center gap-1 text-slate-400 active:bg-slate-50 dark:active:bg-slate-800"
+                  className="size-16 flex-none rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center gap-1 text-slate-400 active:bg-slate-50 dark:active:bg-slate-800"
                 >
-                  <span className="material-symbols-outlined text-2xl">add_a_photo</span>
-                  <span className="text-[8px] font-bold uppercase">Adicionar</span>
+                  <span className="material-symbols-outlined text-xl">add_a_photo</span>
+                  <span className="text-[7px] font-bold uppercase">Adicionar</span>
                 </button>
-                {/* Mock Photos Area */}
                 <input
                   type="file"
                   accept="image/*"
@@ -577,8 +576,8 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
                   }}
                 />
                 {damagePhotos.map((photo, i) => (
-                  <div key={i} className="size-20 flex-none rounded-xl bg-cover bg-center relative group" style={{ backgroundImage: `url(${photo})` }}>
-                    <button onClick={() => setDamagePhotos(damagePhotos.filter((_, idx) => idx !== i))} className="absolute -top-1 -right-1 size-5 bg-accent-error text-white rounded-full flex items-center justify-center shadow-sm"><span className="material-symbols-outlined text-xs">close</span></button>
+                  <div key={i} className="size-16 flex-none rounded-xl bg-cover bg-center relative group" style={{ backgroundImage: `url(${photo})` }}>
+                    <button onClick={() => setDamagePhotos(damagePhotos.filter((_, idx) => idx !== i))} className="absolute -top-1 -right-1 size-4 bg-accent-error text-white rounded-full flex items-center justify-center shadow-sm"><span className="material-symbols-outlined text-[10px]">close</span></button>
                   </div>
                 ))}
               </div>
@@ -588,10 +587,10 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
       </section>
 
       <section className="space-y-3">
-        <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">Assinatura do Motorista</h3>
-        <div className="bg-white dark:bg-card-dark rounded-2xl border border-slate-200 dark:border-slate-800 p-2 shadow-sm">
-          <div className="h-36 bg-slate-50 dark:bg-[#111621] rounded-xl relative flex items-center justify-center border border-slate-100 dark:border-slate-800 overflow-hidden touch-none">
-            {!hasSigned && <span className="text-[10px] font-bold text-slate-300 dark:text-slate-700 uppercase tracking-widest pointer-events-none italic">Assine aqui</span>}
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">Assinatura</h3>
+        <div className="bg-white dark:bg-card-dark rounded-2xl border border-slate-200 dark:border-slate-800 p-1.5 shadow-sm">
+          <div className="h-28 bg-slate-50 dark:bg-[#111621] rounded-xl relative flex items-center justify-center border border-slate-100 dark:border-slate-800 overflow-hidden touch-none">
+            {!hasSigned && <span className="text-[9px] font-bold text-slate-300 dark:text-slate-700 uppercase tracking-widest pointer-events-none italic">Assine aqui</span>}
             <canvas
               ref={canvasRef}
               onPointerDown={startDrawing}
@@ -601,19 +600,19 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
               className="absolute inset-0 cursor-crosshair w-full h-full touch-none"
               style={{ touchAction: 'none' }}
             />
-            <button onClick={clearSignature} className="absolute bottom-3 right-3 size-10 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-xl flex items-center justify-center text-slate-400 active:text-primary transition-all shadow-md border border-slate-200 dark:border-slate-700 z-10"><span className="material-symbols-outlined text-lg">refresh</span></button>
+            <button onClick={clearSignature} className="absolute bottom-2 right-2 size-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-lg flex items-center justify-center text-slate-400 active:text-primary transition-all shadow-md border border-slate-200 dark:border-slate-700 z-10"><span className="material-symbols-outlined text-base">refresh</span></button>
           </div>
         </div>
       </section>
 
-      <section className="space-y-4 pt-6 pb-20">
-        <button onClick={handleFinalize} className="w-full h-20 bg-primary text-white font-black rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-4 active:scale-[0.98] transition-all group">
-          <span className="material-symbols-outlined text-3xl group-active:rotate-12 transition-transform">local_shipping</span>
-          <span className="uppercase tracking-[0.2em] text-base italic">Iniciar Novo Turno</span>
+      <section className="space-y-3 pt-4 pb-20">
+        <button onClick={handleFinalize} className="w-full h-14 bg-primary text-white font-black rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-3 active:scale-[0.98] transition-all group">
+          <span className="material-symbols-outlined text-2xl group-active:rotate-12 transition-transform">local_shipping</span>
+          <span className="uppercase tracking-[0.2em] text-xs italic">Iniciar Novo Turno</span>
         </button>
-        <button onClick={onBack} className="w-full h-16 bg-white dark:bg-card-dark border border-slate-200 dark:border-accent-error/30 text-accent-error font-black rounded-2xl shadow-sm flex items-center justify-center gap-3 active:scale-[0.98] transition-all">
-          <span className="material-symbols-outlined text-2xl">stop_circle</span>
-          <span className="uppercase tracking-[0.2em] text-xs italic">Finalizar Turno</span>
+        <button onClick={onBack} className="w-full h-12 bg-white dark:bg-card-dark border border-slate-200 dark:border-accent-error/30 text-accent-error font-black rounded-xl shadow-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
+          <span className="material-symbols-outlined text-xl">stop_circle</span>
+          <span className="uppercase tracking-[0.2em] text-[10px] italic">Finalizar Turno</span>
         </button>
       </section>
     </div>
