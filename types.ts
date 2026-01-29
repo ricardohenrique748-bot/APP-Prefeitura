@@ -1,0 +1,78 @@
+
+export enum AppScreen {
+  LOGIN = 'LOGIN',
+  DASHBOARD = 'DASHBOARD',
+  FLEET_MANAGEMENT = 'FLEET_MANAGEMENT',
+  REPORTS = 'REPORTS',
+  SETTINGS = 'SETTINGS',
+  SHIFT_START = 'SHIFT_START',
+  SHIFT_END = 'SHIFT_END',
+  TIRE_BULLETIN = 'TIRE_BULLETIN',
+  FUEL_ENTRY = 'FUEL_ENTRY',
+  COST_CENTERS = 'COST_CENTERS',
+  OS_CREATE = 'OS_CREATE',
+  OS_CONTROL = 'OS_CONTROL',
+  FUEL_CONTROL = 'FUEL_CONTROL',
+  USER_MANAGEMENT = 'USER_MANAGEMENT',
+  SUPPLIER_MANAGEMENT = 'SUPPLIER_MANAGEMENT',
+  BACKLOG = 'BACKLOG',
+  SUPPLIER_QUOTE = 'SUPPLIER_QUOTE'
+}
+
+export interface Vehicle {
+  id: string;
+  plate: string;
+  model: string;
+  type: string;
+  status: 'ACTIVE' | 'MAINTENANCE' | 'INACTIVE';
+  km: number;
+  lastPreventiveKm?: number;
+  year?: string;
+  costCenter?: string;
+  responsibleEmail?: string;
+}
+
+export interface OS {
+  id: string;
+  plate: string;
+  type: string;
+  status: 'OPEN' | 'IN_PROGRESS' | 'FINISHED' | 'PENDING_SYNC';
+  date: string;
+  mechanic?: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  isPaid: boolean;
+  costCenter: string;
+}
+
+export interface TireStatus {
+  position: 'DE' | 'DD' | 'TE' | 'TD';
+  life: number;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'ADMIN' | 'GESTOR' | 'OPERADOR';
+  status: 'ACTIVE' | 'INACTIVE';
+  avatar?: string;
+}
+
+export interface Supplier {
+  id: string;
+  name: string;
+  document: string;
+  category: 'PEÇAS' | 'SERVIÇOS' | 'COMBUSTÍVEL' | 'PNEUS';
+  contact: string;
+  email: string;
+  status: 'ACTIVE' | 'INACTIVE';
+}
+
+export interface BacklogItem {
+  id: string;
+  plate: string;
+  description: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  requestDate: string;
+  source: string;
+}

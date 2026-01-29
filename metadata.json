@@ -1,0 +1,8 @@
+{
+  "name": "Frota360",
+  "description": "A comprehensive fleet management dashboard for tracking vehicle maintenance, fuel entries, tire status, and operational checklists.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
