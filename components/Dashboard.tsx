@@ -69,23 +69,39 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
   ];
 
   return (
-    <div className="p-4 space-y-4 bg-background-light dark:bg-background-dark min-h-screen transition-colors duration-300">
-      <section className="grid grid-cols-3 gap-2">
-        <div className="bg-white dark:bg-card-dark p-3 rounded-xl border border-slate-200 dark:border-slate-800/50 shadow-sm">
-          <p className="text-slate-500 dark:text-[#5c6d8c] text-[8px] font-black uppercase mb-1 tracking-widest">Total OS</p>
-          <p className="text-xl font-black italic text-slate-900 dark:text-white leading-none">{osSummary.total}</p>
+    <div className="p-4 md:p-8 space-y-4 md:space-y-8 bg-background-light dark:bg-background-dark min-h-screen transition-colors duration-300">
+
+      {/* Metrics Row */}
+      <section className="grid grid-cols-3 md:grid-cols-5 gap-2 md:gap-4">
+        {/* Total OS */}
+        <div className="bg-white dark:bg-card-dark p-3 md:p-6 rounded-xl border border-slate-200 dark:border-slate-800/50 shadow-sm transition-all hover:shadow-md">
+          <p className="text-slate-500 dark:text-[#5c6d8c] text-[8px] md:text-xs font-black uppercase mb-1 md:mb-2 tracking-widest">Total OS</p>
+          <p className="text-xl md:text-3xl font-black italic text-slate-900 dark:text-white leading-none">{osSummary.total}</p>
         </div>
-        <div className="bg-white dark:bg-card-dark p-3 rounded-xl border border-slate-200 dark:border-slate-800/50 shadow-sm">
-          <p className="text-[#1754cf] text-[8px] font-black uppercase mb-1 tracking-widest">Abertas</p>
-          <p className="text-xl font-black italic text-[#1754cf] leading-none">{osSummary.abertas}</p>
+        {/* Open OS */}
+        <div className="bg-white dark:bg-card-dark p-3 md:p-6 rounded-xl border border-slate-200 dark:border-slate-800/50 shadow-sm transition-all hover:shadow-md">
+          <p className="text-[#1754cf] text-[8px] md:text-xs font-black uppercase mb-1 md:mb-2 tracking-widest">Abertas</p>
+          <p className="text-xl md:text-3xl font-black italic text-[#1754cf] leading-none">{osSummary.abertas}</p>
         </div>
-        <div className="bg-white dark:bg-card-dark p-3 rounded-xl border border-slate-200 dark:border-slate-800/50 shadow-sm">
-          <p className="text-[#0bda5e] text-[8px] font-black uppercase mb-1 tracking-widest">Fechadas</p>
-          <p className="text-xl font-black italic text-[#0bda5e] leading-none">{osSummary.finalizadas}</p>
+        {/* Closed OS */}
+        <div className="bg-white dark:bg-card-dark p-3 md:p-6 rounded-xl border border-slate-200 dark:border-slate-800/50 shadow-sm transition-all hover:shadow-md">
+          <p className="text-[#0bda5e] text-[8px] md:text-xs font-black uppercase mb-1 md:mb-2 tracking-widest">Fechadas</p>
+          <p className="text-xl md:text-3xl font-black italic text-[#0bda5e] leading-none">{osSummary.finalizadas}</p>
+        </div>
+
+        {/* Financial Metrics - Visible on Desktop grid, Mobile separates them below if needed, or we keep 5 cols on desktop */}
+        <div className="hidden md:flex flex-col justify-center bg-white dark:bg-card-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800/50 shadow-sm">
+          <p className="text-slate-500 dark:text-[#5c6d8c] text-xs font-black uppercase mb-2 tracking-widest">Gasto Manut.</p>
+          <p className="text-xl font-black italic text-slate-900 dark:text-white leading-none tracking-tight">{osSummary.custoTotalManutencao}</p>
+        </div>
+        <div className="hidden md:flex flex-col justify-center bg-white dark:bg-card-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800/50 shadow-sm">
+          <p className="text-[#1754cf] text-xs font-black uppercase mb-2 tracking-widest">Gasto Combust.</p>
+          <p className="text-xl font-black italic text-slate-900 dark:text-white leading-none tracking-tight">{osSummary.custoTotalCombustivel}</p>
         </div>
       </section>
 
-      <section className="grid grid-cols-2 gap-2">
+      {/* Mobile Only Financials (to keep original mobile layout exact) */}
+      <section className="grid grid-cols-2 gap-2 md:hidden">
         <div className="bg-white dark:bg-card-dark p-3 rounded-xl border border-slate-200 dark:border-slate-800/50 shadow-sm flex flex-col justify-center min-h-[70px]">
           <p className="text-slate-500 dark:text-[#5c6d8c] text-[9px] font-black uppercase mb-1 tracking-widest">Gasto Manut.</p>
           <p className="text-lg font-black italic text-slate-900 dark:text-white leading-none tracking-tight">{osSummary.custoTotalManutencao}</p>
@@ -96,77 +112,83 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
         </div>
       </section>
 
-      {maintenanceAlerts.length > 0 && (
-        <section className="space-y-3 pt-2">
-          <div className="flex items-center gap-2 px-1">
-            <span className="material-symbols-outlined text-amber-500 animate-pulse">warning</span>
-            <h2 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-[#5c6d8c]">Alertas de Preventiva</h2>
-          </div>
-          <div className="grid gap-3">
-            {maintenanceAlerts.map(alert => (
-              <div key={alert.id} className={`p-4 rounded-xl border-l-[6px] shadow-sm bg-white dark:bg-card-dark border dark:border-slate-800 ${alert.maintenanceStatus === 'OVERDUE' ? 'border-l-accent-error' : 'border-l-amber-400'}`}>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-lg font-black italic text-slate-900 dark:text-white">{alert.plate}</h3>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{alert.model}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+        {/* Maintenance Alerts */}
+        {maintenanceAlerts.length > 0 && (
+          <section className="space-y-3 md:space-y-5">
+            <div className="flex items-center gap-2 px-1">
+              <span className="material-symbols-outlined text-amber-500 animate-pulse md:text-2xl">warning</span>
+              <h2 className="text-xs md:text-sm font-black uppercase tracking-widest text-slate-500 dark:text-[#5c6d8c]">Alertas de Preventiva</h2>
+            </div>
+            <div className="grid gap-3 md:gap-4">
+              {maintenanceAlerts.map(alert => (
+                <div key={alert.id} className={`p-4 md:p-5 rounded-xl border-l-[6px] shadow-sm bg-white dark:bg-card-dark border dark:border-slate-800 ${alert.maintenanceStatus === 'OVERDUE' ? 'border-l-accent-error' : 'border-l-amber-400'}`}>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-lg md:text-xl font-black italic text-slate-900 dark:text-white">{alert.plate}</h3>
+                      <p className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">{alert.model}</p>
+                    </div>
+                    <div className={`px-2 py-1 rounded-md text-[9px] md:text-[10px] font-black uppercase tracking-widest text-white ${alert.maintenanceStatus === 'OVERDUE' ? 'bg-accent-error' : 'bg-amber-400'}`}>
+                      {alert.maintenanceStatus === 'OVERDUE' ? 'VENCIDA' : 'PRÓXIMA'}
+                    </div>
                   </div>
-                  <div className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest text-white ${alert.maintenanceStatus === 'OVERDUE' ? 'bg-accent-error' : 'bg-amber-400'}`}>
-                    {alert.maintenanceStatus === 'OVERDUE' ? 'VENCIDA' : 'PRÓXIMA'}
+                  <div className="mt-3 flex items-center justify-between">
+                    <p className="text-xs md:text-sm font-bold text-slate-600 dark:text-slate-300">
+                      {alert.maintenanceStatus === 'OVERDUE'
+                        ? <span>Passou <span className="text-accent-error">{Math.abs(alert.remainingKm)} km</span></span>
+                        : <span>Faltam <span className="text-amber-500">{alert.remainingKm} km</span></span>
+                      }
+                    </p>
+                    <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase">Ref: {alert.lastPreventiveKm}km</p>
+                  </div>
+                  {/* Progress Bar */}
+                  <div className="mt-2 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${alert.maintenanceStatus === 'OVERDUE' ? 'bg-accent-error' : 'bg-amber-400'}`}
+                      style={{ width: `${Math.min(100, (alert.kmSinceLast / alert.interval) * 100)}%` }}
+                    ></div>
                   </div>
                 </div>
-                <div className="mt-3 flex items-center justify-between">
-                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300">
-                    {alert.maintenanceStatus === 'OVERDUE'
-                      ? <span>Passou <span className="text-accent-error">{Math.abs(alert.remainingKm)} km</span></span>
-                      : <span>Faltam <span className="text-amber-500">{alert.remainingKm} km</span></span>
-                    }
-                  </p>
-                  <p className="text-[9px] font-black text-slate-400 uppercase">Ref: {alert.lastPreventiveKm}km</p>
-                </div>
-                {/* Progress Bar */}
-                <div className="mt-2 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${alert.maintenanceStatus === 'OVERDUE' ? 'bg-accent-error' : 'bg-amber-400'}`}
-                    style={{ width: `${Math.min(100, (alert.kmSinceLast / alert.interval) * 100)}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+              ))}
+            </div>
+          </section>
+        )}
 
-      <section className="bg-white dark:bg-card-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800/50 shadow-md">
-        <h2 className="text-base font-black italic tracking-tighter uppercase text-slate-900 dark:text-white mb-5">Status da Frota</h2>
-        <div className="flex items-center gap-6">
-          <div className="relative size-32 flex-shrink-0">
-            <PieChart width={128} height={128}>
-              <Pie data={chartData} innerRadius={35} outerRadius={55} paddingAngle={8} dataKey="value" stroke="none" startAngle={90} endAngle={450}>
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-            </PieChart>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-black italic text-slate-900 dark:text-white leading-none">{vehicles.length}</span>
-              <span className="text-[7px] font-black text-slate-500 dark:text-[#5c6d8c] uppercase tracking-[0.2em] mt-1">Total</span>
+        {/* Fleet Status Chart */}
+        <section className={`bg-white dark:bg-card-dark rounded-2xl p-5 md:p-8 border border-slate-200 dark:border-slate-800/50 shadow-md ${maintenanceAlerts.length === 0 ? 'md:col-span-2' : ''}`}>
+          <h2 className="text-base md:text-lg font-black italic tracking-tighter uppercase text-slate-900 dark:text-white mb-5">Status da Frota</h2>
+          <div className="flex items-center justify-center md:justify-start gap-6 md:gap-12">
+            <div className="relative size-32 md:size-48 flex-shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={chartData} innerRadius="60%" outerRadius="90%" paddingAngle={5} dataKey="value" stroke="none" startAngle={90} endAngle={450}>
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-2xl md:text-4xl font-black italic text-slate-900 dark:text-white leading-none">{vehicles.length}</span>
+                <span className="text-[7px] md:text-[10px] font-black text-slate-500 dark:text-[#5c6d8c] uppercase tracking-[0.2em] mt-1">Total</span>
+              </div>
+            </div>
+            <div className="flex flex-col gap-3 md:gap-5 flex-1 max-w-xs">
+              {chartData.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full" style={{ backgroundColor: item.color }}></span>
+                    <span className="text-[9px] md:text-xs font-black uppercase text-slate-500 dark:text-[#5c6d8c] tracking-wider">{item.name}</span>
+                  </div>
+                  <span className="text-base md:text-xl font-black italic text-slate-900 dark:text-white leading-none">{item.value}</span>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="flex flex-col gap-3 flex-1">
-            {chartData.map((item, idx) => (
-              <div key={idx} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }}></span>
-                  <span className="text-[9px] font-black uppercase text-slate-500 dark:text-[#5c6d8c] tracking-wider">{item.name}</span>
-                </div>
-                <span className="text-base font-black italic text-slate-900 dark:text-white leading-none">{item.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      <div className="h-16"></div>
+      <div className="h-16 md:hidden"></div>
     </div>
   );
 };

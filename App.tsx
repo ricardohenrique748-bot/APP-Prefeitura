@@ -75,6 +75,10 @@ const DEFAULT_VEHICLES: Vehicle[] = [
   { id: '1020', plate: 'VAN-1020', model: 'Sprinter 415', type: 'Utilitário', status: 'INACTIVE', km: 45000, lastPreventiveKm: 40000, year: '2020', costCenter: '102 - Transp. Interno' },
 ];
 
+import { supabase } from './services/supabase';
+
+// ... (keep interface definitions)
+
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const isAuthenticated = !!currentUser;
@@ -89,40 +93,83 @@ const App: React.FC = () => {
     return saved ? saved === 'dark' : false;
   });
 
-  const [costCenters, setCostCenters] = useState<CostCenter[]>(() => {
-    try {
-      const saved = localStorage.getItem('fleet_master_cost_centers');
-      return saved ? JSON.parse(saved) : DEFAULT_COST_CENTERS;
-    } catch (e) { return DEFAULT_COST_CENTERS; }
-  });
+  const [costCenters, setCostCenters] = useState<CostCenter[]>(DEFAULT_COST_CENTERS);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [orders, setOrders] = useState<OSDetail[]>([]);
+  const [fuelEntries, setFuelEntries] = useState<FuelEntryData[]>([]);
+  const [activeShifts, setActiveShifts] = useState<string[]>([]);
 
-  const [vehicles, setVehicles] = useState<Vehicle[]>(() => {
-    try {
-      const saved = localStorage.getItem('fleet_master_vehicles');
-      return saved ? JSON.parse(saved) : DEFAULT_VEHICLES;
-    } catch (e) { return DEFAULT_VEHICLES; }
-  });
+  // Carregar dados do Supabase ao iniciar
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Buscar Veículos
+        const { data: vData, error: vError } = await supabase.from('vehicles').select('*');
+        if (vData) {
+          const mappedVehicles = vData.map((v: any) => ({
+            id: v.id,
+            plate: v.plate,
+            model: v.model,
+            type: v.type,
+            status: v.status,
+            km: v.km,
+            lastPreventiveKm: v.last_preventive_km,
+            costCenter: v.cost_center,
+            year: '2023' // Default or fetch if added to DB
+          }));
+          setVehicles(mappedVehicles);
+        }
 
-  const [orders, setOrders] = useState<OSDetail[]>(() => {
-    try {
-      const saved = localStorage.getItem('fleet_master_orders');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) { return []; }
-  });
+        // Buscar OS
+        const { data: oData } = await supabase.from('service_orders').select('*');
+        if (oData) {
+          const mappedOrders = oData.map((o: any) => ({
+            id: o.id,
+            plate: o.plate,
+            task: o.description || 'Manutenção Diversa', // Fallback mapping based on schema differences
+            taskType: o.type,
+            status: o.status,
+            priority: o.priority,
+            time: new Date(o.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            mechanic: o.mechanic || 'Interno',
+            description: o.description || '',
+            costCenter: o.cost_center || 'Geral',
+            openedAt: o.opened_at,
+            isPaid: o.is_paid,
+            costValue: Number(o.cost) || 0,
+            invoiceUrl: o.invoice_url,
+            quoteUrl: o.quote_url
+          }));
+          setOrders(mappedOrders);
+        }
 
-  const [fuelEntries, setFuelEntries] = useState<FuelEntryData[]>(() => {
-    try {
-      const saved = localStorage.getItem('fleet_master_fuel_entries');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) { return []; }
-  });
+        // Buscar Combustível
+        const { data: fData } = await supabase.from('fuel_entries').select('*');
+        if (fData) {
+          const mappedFuel = fData.map((f: any) => ({
+            id: f.id,
+            plate: f.plate,
+            driver: f.driver || 'Motorista',
+            date: f.date, // Format date if needed
+            costCenter: '304 - Combustível', // You might want to join vehicle to get CC
+            item: f.fuel_type || 'Diesel',
+            quantity: Number(f.quantity),
+            unitPrice: Number(f.total_value) / Number(f.quantity), // Estimate
+            totalValue: Number(f.total_value),
+            invoiceUrl: ''
+          }));
+          setFuelEntries(mappedFuel);
+        }
 
-  const [activeShifts, setActiveShifts] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem('fleet_master_active_shifts');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) { return []; }
-  });
+      } catch (error) {
+        console.error("Erro ao buscar dados do Supabase:", error);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchData();
+    }
+  }, [isAuthenticated]);
 
   // Cálculos de Centros de Custo em tempo real
   const centersWithStats = useMemo(() => {
@@ -232,17 +279,21 @@ const App: React.FC = () => {
   };
 
   return (
-    <DeviceSimulator>
+    <DeviceSimulator currentScreen={currentScreen} onNavigate={setCurrentScreen} showSidebar={isAuthenticated}>
       <div className="flex flex-col h-full min-h-full bg-background-light dark:bg-background-dark w-full overflow-x-hidden relative transition-colors duration-300">
         {!isAuthenticated ? (
           <Login onLogin={(user) => setCurrentUser(user)} isDarkMode={isDarkMode} />
         ) : (
           <>
-            <Header currentScreen={currentScreen} avatarUrl={userAvatar} />
-            <main className={`flex-1 overflow-y-auto`}>
+            <div className="md:hidden shrink-0">
+              <Header currentScreen={currentScreen} avatarUrl={userAvatar} />
+            </div>
+            <main className={`flex-1 overflow-y-auto w-full`}>
               {renderScreen()}
             </main>
-            <Navigation activeScreen={currentScreen} onNavigate={(screen) => setCurrentScreen(screen)} />
+            <div className="md:hidden z-50 shrink-0">
+              <Navigation activeScreen={currentScreen} onNavigate={(screen) => setCurrentScreen(screen)} />
+            </div>
           </>
         )}
       </div>
