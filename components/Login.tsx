@@ -91,8 +91,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     <div className="flex flex-col h-full min-h-screen bg-background-light dark:bg-background-dark items-center justify-center p-8 transition-colors duration-300">
       <div className="w-full max-w-sm space-y-10 animate-in fade-in duration-500">
         <div className="flex flex-col items-center gap-6">
-          <div className="size-20 bg-primary rounded-[1.8rem] flex items-center justify-center shadow-2xl shadow-primary/30 rotate-12">
-            <span className="material-symbols-outlined text-4xl text-white -rotate-12 font-black">local_shipping</span>
+          <div className="size-24 rounded-[1.8rem] flex items-center justify-center shadow-2xl shadow-primary/30 rotate-12 overflow-hidden bg-white border-4 border-white dark:border-slate-800">
+            <img src="/logo.png" alt="SMART TECH Logo" className="w-full h-full object-cover -rotate-12 scale-110" />
           </div>
           <div className="text-center">
             <h1 className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic">SMART TECH</h1>
