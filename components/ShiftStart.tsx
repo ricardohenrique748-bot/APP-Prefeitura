@@ -240,7 +240,7 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
           ]
         },
         {
-          id: 'mochila', label: 'MOCHILA MOTOLÂNCIA', icon: 'medical_services', items: [
+          id: 'mochila', label: 'MOCHILA MOTOCICLETA', icon: 'medical_services', items: [
             { id: 'bvm', label: 'BVM (Adulto/Infantil)' },
             { id: 'mascara_o2', label: 'Máscara de O2 c/ reservatório' },
             { id: 'cateteres', label: 'Cateteres de O2' },
@@ -252,7 +252,7 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
           ]
         },
         {
-          id: 'maleiro', label: 'MALEIRO MOTOLÂNCIA', icon: 'inventory_2', items: [
+          id: 'maleiro', label: 'MALEIRO MOTOCICLETA', icon: 'inventory_2', items: [
             { id: 'colar_cervical', label: 'Colar cervical P/M/G' },
             { id: 'dea', label: 'DEA (Desfibrilador)' },
             { id: 'curativos', label: 'Atadura, Gazes e compressas' },
