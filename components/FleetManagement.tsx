@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { AppScreen, Vehicle } from '../types';
 import { CostCenter } from '../App';
+import { supabase } from '../services/supabase';
 
 interface FleetManagementProps {
   onBack: () => void;
@@ -69,24 +70,59 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
     setIsCustomType(!vehicleTypes.includes(vehicle.type));
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const vehicleData = {
+      plate: formData.plate.toUpperCase(),
+      model: formData.model,
+      type: formData.type,
+      status: formData.status,
+      km: parseInt(formData.km) || 0,
+      last_preventive_km: parseInt(formData.last_preventive_km) || 0,
+      cost_center: formData.costCenter
+    };
+
     if (isAdding) {
-      const newVehicle: Vehicle = {
-        id: Math.random().toString(36).substr(2, 9),
-        plate: formData.plate.toUpperCase(),
-        model: formData.model,
-        type: formData.type,
-        status: formData.status,
-        km: parseInt(formData.km) || 0,
-        lastPreventiveKm: parseInt(formData.lastPreventiveKm) || undefined,
-        year: formData.year,
-        costCenter: formData.costCenter,
-        responsibleEmail: formData.responsibleEmail
-      };
-      setVehicles([newVehicle, ...vehicles]);
+      const { data, error } = await supabase
+        .from('vehicles')
+        .insert([vehicleData])
+        .select();
+
+      if (error) {
+        console.error("Erro ao cadastrar veículo:", error);
+        alert("Erro ao cadastrar no banco de dados.");
+        return;
+      }
+
+      if (data && data[0]) {
+        const newVehicle: Vehicle = {
+          id: data[0].id,
+          plate: data[0].plate,
+          model: data[0].model,
+          type: data[0].type,
+          status: data[0].status,
+          km: data[0].km,
+          lastPreventiveKm: data[0].last_preventive_km,
+          costCenter: data[0].cost_center,
+          year: formData.year, // Mantido no estado local
+          responsibleEmail: formData.responsibleEmail // Mantido no estado local
+        };
+        setVehicles([newVehicle, ...vehicles]);
+      }
       setIsAdding(false);
     } else if (editingVehicle) {
+      const { error } = await supabase
+        .from('vehicles')
+        .update(vehicleData)
+        .eq('id', editingVehicle.id);
+
+      if (error) {
+        console.error("Erro ao atualizar veículo:", error);
+        alert("Erro ao atualizar no banco de dados.");
+        return;
+      }
+
       setVehicles(vehicles.map(v =>
         v.id === editingVehicle.id
           ? { ...v, ...formData, plate: formData.plate.toUpperCase(), km: parseInt(formData.km) || 0, lastPreventiveKm: parseInt(formData.lastPreventiveKm) || undefined }
@@ -96,9 +132,30 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
     }
   };
 
-  const handleDelete = (id: string) => {
-    setVehicles(vehicles.filter(v => v.id !== id));
-    setShowDeleteConfirm(null);
+  const handleDelete = async (id: string) => {
+    try {
+      // Tenta excluir do Supabase
+      const { error, count } = await supabase
+        .from('vehicles')
+        .delete({ count: 'exact' })
+        .eq('id', id);
+
+      if (error) {
+        console.error("Erro ao deletar veículo:", error);
+        alert(`Erro ao excluir: ${error.message}. Verifique se existem dependências.`);
+        return;
+      }
+
+      // Se chegamos aqui, removemos do estado local
+      setVehicles(prev => prev.filter(v => v.id !== id));
+      setShowDeleteConfirm(null);
+
+      // Feedback opicional
+      console.log(`Veículo com ID ${id} excluído com sucesso.`);
+    } catch (err) {
+      console.error("Erro inesperado:", err);
+      alert("Ocorreu um erro inesperado ao tentar excluir.");
+    }
   };
 
   const getStatusStyle = (status: string) => {

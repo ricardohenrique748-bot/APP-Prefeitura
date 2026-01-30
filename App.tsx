@@ -208,8 +208,19 @@ const App: React.FC = () => {
     else { document.documentElement.classList.remove('dark'); localStorage.setItem('fleet_master_theme', 'light'); }
   }, [isDarkMode]);
 
-  const updateVehicleKm = (id: string, newKm: number) => {
-    setVehicles(prev => prev.map(v => v.id === id ? { ...v, km: newKm } : v));
+  const updateVehicleKm = async (id: string, newKm: number) => {
+    try {
+      const { error } = await supabase
+        .from('vehicles')
+        .update({ km: newKm })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setVehicles(prev => prev.map(v => v.id === id ? { ...v, km: newKm } : v));
+    } catch (error) {
+      console.error("Erro ao atualizar KM no Supabase:", error);
+    }
   };
 
   const handleAddFuelEntry = (entry: FuelEntryData) => {
