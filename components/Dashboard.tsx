@@ -159,7 +159,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
           <h2 className="text-base md:text-lg font-black italic tracking-tighter uppercase text-slate-900 dark:text-white mb-5">Status da Frota</h2>
           <div className="flex items-center justify-center md:justify-start gap-6 md:gap-12">
             <div className="relative size-32 md:size-48 flex-shrink-0">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <PieChart>
                   <Pie data={chartData} innerRadius="60%" outerRadius="90%" paddingAngle={5} dataKey="value" stroke="none" startAngle={90} endAngle={450}>
                     {chartData.map((entry, index) => (
