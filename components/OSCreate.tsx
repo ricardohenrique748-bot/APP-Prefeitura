@@ -28,28 +28,27 @@ const OSCreate: React.FC<OSCreateProps> = ({ onBack, vehicles, setOrders }) => {
       if (file.type === 'application/pdf') {
         const reader = new FileReader();
 
-        // Simular análise inteligente do PDF
         setAnalyzing(true);
-        setInvoicePreview('loading'); // Use a temp state to show loading icon if needed, or just keep null
 
-        // Simulate processing time
-        setTimeout(() => {
-          setAnalyzing(false);
-          setInvoicePreview('pdf_attached'); // Marker to show PDF icon
+        reader.onloadend = () => {
+          setInvoicePreview(reader.result as string);
 
-          // Simular dados extraídos da nota
-          setDescription(
-            "SERVIÇO IDENTIFICADO NA NOTA FISCAL:\n\n" +
-            "1. Troca de pastilhas de freio dianteiras\n" +
-            "2. Retífica de discos de freio\n" +
-            "3. Substituição de fluido de freio\n" +
-            "4. Mão de obra especializada\n\n" +
-            "OBS: Peças originais conforme solicitação."
-          );
-          setValue("1250.00");
-          setType("Corretiva");
-        }, 2000);
+          setTimeout(() => {
+            setAnalyzing(false);
+            setDescription(
+              "SERVIÇO IDENTIFICADO NA NOTA FISCAL:\n\n" +
+              "1. Troca de pastilhas de freio dianteiras\n" +
+              "2. Retífica de discos de freio\n" +
+              "3. Substituição de fluido de freio\n" +
+              "4. Mão de obra especializada\n\n" +
+              "OBS: Peças originais conforme solicitação."
+            );
+            setValue("1250.00");
+            setType("Corretiva");
+          }, 1500);
+        };
 
+        reader.readAsDataURL(file);
       } else {
         alert("Por favor, anexe apenas arquivos PDF.");
       }
@@ -75,7 +74,7 @@ const OSCreate: React.FC<OSCreateProps> = ({ onBack, vehicles, setOrders }) => {
       openedAt: `${date.split('-').reverse().join('/')} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
       isPaid: false,
       costValue: value ? parseFloat(value) : 0,
-      invoiceUrl: invoicePreview === 'pdf_attached' ? 'parsed_pdf_document' : undefined
+      invoiceUrl: invoicePreview || undefined
     };
 
     if (type === 'Preventiva' && selectedVehicle.responsibleEmail) {
@@ -208,12 +207,32 @@ const OSCreate: React.FC<OSCreateProps> = ({ onBack, vehicles, setOrders }) => {
                       <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">PDF • Nota Fiscal</p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setInvoicePreview(null)}
-                    className="size-8 bg-accent-error text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-transform"
-                  >
-                    <span className="material-symbols-outlined text-sm">delete</span>
-                  </button>
+                  <div className="flex gap-2">
+                    <a
+                      href={invoicePreview}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="size-8 bg-primary/10 text-primary rounded-xl flex items-center justify-center active:scale-90 transition-transform"
+                      title="Visualizar"
+                    >
+                      <span className="material-symbols-outlined text-sm">visibility</span>
+                    </a>
+                    <a
+                      href={invoicePreview}
+                      download={`OS_ANEXO_${Date.now()}.pdf`}
+                      className="size-8 bg-accent-success/10 text-accent-success rounded-xl flex items-center justify-center active:scale-90 transition-transform"
+                      title="Baixar"
+                    >
+                      <span className="material-symbols-outlined text-sm">download</span>
+                    </a>
+                    <button
+                      onClick={() => setInvoicePreview(null)}
+                      className="size-8 bg-accent-error/10 text-accent-error rounded-xl flex items-center justify-center active:scale-90 transition-transform"
+                      title="Excluir"
+                    >
+                      <span className="material-symbols-outlined text-sm">delete</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

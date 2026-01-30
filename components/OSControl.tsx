@@ -353,7 +353,25 @@ const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders }) =>
                         <div className="relative group w-full h-24 rounded-2xl overflow-hidden border border-blue-500/30 bg-blue-50 dark:bg-blue-900/10 shadow-inner">
                           <img src={selectedOS.quoteUrl} className="w-full h-full object-cover opacity-90" alt="Orçamento" />
                           <button onClick={() => handleRemoveDocument(selectedOS.id, 'quote')} className="absolute top-1 right-1 size-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 hover:bg-red-600"><span className="material-symbols-outlined text-[12px]">close</span></button>
-                          <a href={selectedOS.quoteUrl} target="_blank" rel="noreferrer" className="absolute bottom-1 right-1 size-6 bg-blue-500 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 hover:bg-blue-600"><span className="material-symbols-outlined text-[12px]">visibility</span></a>
+                          <div className="absolute bottom-1 right-1 flex gap-1">
+                            <a
+                              href={selectedOS.quoteUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="size-6 bg-primary/10 text-primary rounded-md flex items-center justify-center active:scale-90 transition-all"
+                              title="Visualizar"
+                            >
+                              <span className="material-symbols-outlined text-[12px]">visibility</span>
+                            </a>
+                            <a
+                              href={selectedOS.quoteUrl}
+                              download={`ORCAMENTO_${selectedOS.plate}_${selectedOS.id}.pdf`}
+                              className="size-6 bg-accent-success/10 text-accent-success rounded-md flex items-center justify-center active:scale-90 transition-all"
+                              title="Baixar"
+                            >
+                              <span className="material-symbols-outlined text-[12px]">download</span>
+                            </a>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -369,7 +387,25 @@ const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders }) =>
                         <div className="relative group w-full h-24 rounded-2xl overflow-hidden border border-emerald-500/30 bg-emerald-50 dark:bg-emerald-900/10 shadow-inner">
                           <img src={selectedOS.invoiceUrl} className="w-full h-full object-cover opacity-90" alt="NF" />
                           <button onClick={() => handleRemoveDocument(selectedOS.id, 'invoice')} className="absolute top-1 right-1 size-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 hover:bg-red-600"><span className="material-symbols-outlined text-[12px]">close</span></button>
-                          <a href={selectedOS.invoiceUrl} target="_blank" rel="noreferrer" className="absolute bottom-1 right-1 size-6 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 hover:bg-emerald-600"><span className="material-symbols-outlined text-[12px]">visibility</span></a>
+                          <div className="absolute bottom-1 right-1 flex gap-1">
+                            <a
+                              href={selectedOS.invoiceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="size-6 bg-primary/10 text-primary rounded-md flex items-center justify-center active:scale-90 transition-all"
+                              title="Visualizar"
+                            >
+                              <span className="material-symbols-outlined text-[12px]">visibility</span>
+                            </a>
+                            <a
+                              href={selectedOS.invoiceUrl}
+                              download={`NOTA_FISCAL_${selectedOS.plate}_${selectedOS.id}.pdf`}
+                              className="size-6 bg-accent-success/10 text-accent-success rounded-md flex items-center justify-center active:scale-90 transition-all"
+                              title="Baixar"
+                            >
+                              <span className="material-symbols-outlined text-[12px]">download</span>
+                            </a>
+                          </div>
                         </div>
                       )}
                     </div>

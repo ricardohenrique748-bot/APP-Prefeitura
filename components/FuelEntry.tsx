@@ -195,12 +195,31 @@ const FuelEntry: React.FC<FuelEntryProps> = ({ onBack, onSave, vehicles }) => {
                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">PDF • Nota Fiscal</p>
                 </div>
               </div>
-              <button
-                onClick={() => setInvoicePreview(null)}
-                className="size-8 bg-accent-error text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-transform"
-              >
-                <span className="material-symbols-outlined text-sm">delete</span>
-              </button>
+              <div className="flex gap-2">
+                <a
+                  href={invoicePreview}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="size-8 bg-primary/10 text-primary rounded-xl flex items-center justify-center active:scale-90 transition-transform"
+                  title="Visualizar"
+                >
+                  <span className="material-symbols-outlined text-sm">visibility</span>
+                </a>
+                <a
+                  href={invoicePreview}
+                  download={`FUEL_ANEXO_${Date.now()}.pdf`}
+                  className="size-8 bg-accent-success/10 text-accent-success rounded-xl flex items-center justify-center active:scale-90 transition-transform"
+                  title="Baixar"
+                >
+                  <span className="material-symbols-outlined text-sm">download</span>
+                </a>
+                <button
+                  onClick={() => setInvoicePreview(null)}
+                  className="size-8 bg-accent-error/10 text-accent-error rounded-xl flex items-center justify-center active:scale-90 transition-transform"
+                >
+                  <span className="material-symbols-outlined text-sm">delete</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
