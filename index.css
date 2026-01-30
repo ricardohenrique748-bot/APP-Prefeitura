@@ -23,6 +23,7 @@
 body {
     font-family: 'Inter', sans-serif;
     -webkit-tap-highlight-color: transparent;
+    padding-top: env(safe-area-inset-top);
 }
 
 /* Custom scrollbar */
