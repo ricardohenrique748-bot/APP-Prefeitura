@@ -269,7 +269,7 @@ const App: React.FC = () => {
       case AppScreen.TIRE_BULLETIN:
         return <TireBulletin vehicles={vehicles} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.USER_MANAGEMENT:
-        return <UserManagement onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
+        return <UserManagement currentUserRole={currentUser?.role || 'OPERADOR'} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.SUPPLIER_MANAGEMENT:
         return <SupplierManagement onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.BACKLOG:

@@ -4,13 +4,15 @@ import { User } from '../types';
 
 interface UserManagementProps {
   onBack: () => void;
+  currentUserRole: 'ADMIN' | 'GESTOR' | 'OPERADOR' | 'MOTORISTA';
 }
 
-const UserManagement: React.FC<UserManagementProps> = ({ onBack }) => {
+const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole }) => {
   const [users, setUsers] = useState<User[]>([
     { id: '1', name: 'Ricardo Luz', email: 'ricardo.luz@prefeitura.gov.br', role: 'ADMIN', status: 'ACTIVE', avatar: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100&h=100&fit=crop' },
     { id: '2', name: 'Marcos Silva', email: 'marcos.silva@prefeitura.gov.br', role: 'GESTOR', status: 'ACTIVE', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop' },
     { id: '3', name: 'Ana Oliveira', email: 'ana.o@prefeitura.gov.br', role: 'OPERADOR', status: 'INACTIVE', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop' },
+    { id: '4', name: 'Claudio J.', email: 'claudio.j@prefeitura.gov.br', role: 'MOTORISTA', status: 'ACTIVE', avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop' },
   ]);
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,7 +23,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    role: 'OPERADOR' as 'ADMIN' | 'GESTOR' | 'OPERADOR',
+    role: 'OPERADOR' as 'ADMIN' | 'GESTOR' | 'OPERADOR' | 'MOTORISTA',
     status: 'ACTIVE' as 'ACTIVE' | 'INACTIVE'
   });
 
@@ -31,16 +33,26 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack }) => {
   );
 
   const openAddModal = () => {
-    setFormData({ name: '', email: '', role: 'OPERADOR', status: 'ACTIVE' });
+    setFormData({
+      name: '',
+      email: '',
+      role: currentUserRole === 'GESTOR' ? 'MOTORISTA' : 'OPERADOR',
+      status: 'ACTIVE'
+    });
     setIsAdding(true);
   };
 
   const openEditModal = (user: User) => {
+    // Gestores não podem editar Admins ou outros Gestores
+    if (currentUserRole === 'GESTOR' && (user.role === 'ADMIN' || user.role === 'GESTOR')) {
+      alert("Você não tem permissão para editar este perfil.");
+      return;
+    }
     setEditingUser(user);
     setFormData({
       name: user.name,
       email: user.email,
-      role: user.role,
+      role: user.role as any,
       status: user.status
     });
   };
@@ -132,18 +144,22 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack }) => {
                   </div>
                 </div>
                 <div className="flex gap-1">
-                  <button
-                    onClick={() => openEditModal(user)}
-                    className="size-9 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-primary active:scale-90 transition-all"
-                  >
-                    <span className="material-symbols-outlined text-xl">edit</span>
-                  </button>
-                  <button
-                    onClick={() => setShowDeleteConfirm(user.id)}
-                    className="size-9 rounded-lg flex items-center justify-center bg-accent-error/10 text-accent-error active:scale-90 transition-all"
-                  >
-                    <span className="material-symbols-outlined text-xl">delete</span>
-                  </button>
+                  {(currentUserRole === 'ADMIN' || (currentUserRole === 'GESTOR' && user.role !== 'ADMIN' && user.role !== 'GESTOR')) && (
+                    <>
+                      <button
+                        onClick={() => openEditModal(user)}
+                        className="size-9 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-primary active:scale-90 transition-all"
+                      >
+                        <span className="material-symbols-outlined text-xl">edit</span>
+                      </button>
+                      <button
+                        onClick={() => setShowDeleteConfirm(user.id)}
+                        className="size-9 rounded-lg flex items-center justify-center bg-accent-error/10 text-accent-error active:scale-90 transition-all"
+                      >
+                        <span className="material-symbols-outlined text-xl">delete</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -195,11 +211,17 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack }) => {
                   <select
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
-                    className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary appearance-none"
+                    disabled={currentUserRole === 'GESTOR'}
+                    className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary appearance-none disabled:opacity-50"
                   >
-                    <option value="ADMIN">Administrador</option>
-                    <option value="GESTOR">Gestor</option>
+                    {currentUserRole === 'ADMIN' && (
+                      <>
+                        <option value="ADMIN">Administrador</option>
+                        <option value="GESTOR">Gestor</option>
+                      </>
+                    )}
                     <option value="OPERADOR">Operador</option>
+                    <option value="MOTORISTA">Motorista</option>
                   </select>
                 </div>
                 <div className="space-y-2">
