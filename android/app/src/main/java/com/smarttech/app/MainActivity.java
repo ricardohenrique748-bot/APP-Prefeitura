@@ -1,4 +1,4 @@
-package com.frota360.app;
+package com.smarttech.app;
 
 import com.getcapacitor.BridgeActivity;
 
