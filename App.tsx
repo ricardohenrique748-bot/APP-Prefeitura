@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { AppScreen, Vehicle, User } from './types';
+import { AppScreen, Vehicle, User, Shift } from './types';
 import DeviceSimulator from './components/DeviceSimulator';
 import Dashboard from './components/Dashboard';
 import ShiftStart from './components/ShiftStart';
@@ -97,9 +97,19 @@ const App: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [orders, setOrders] = useState<OSDetail[]>([]);
   const [fuelEntries, setFuelEntries] = useState<FuelEntryData[]>([]);
+  const [shifts, setShifts] = useState<Shift[]>([]);
   const [activeShifts, setActiveShifts] = useState<string[]>([]);
 
   // Carregar dados do Supabase ao iniciar
+  useEffect(() => {
+    // Check for direct links (e.g. Supplier Quotes)
+    const params = new URLSearchParams(window.location.search);
+    const screenParam = params.get('screen');
+    if (screenParam === 'SUPPLIER_QUOTE') {
+      setCurrentScreen(AppScreen.SUPPLIER_QUOTE);
+    }
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -159,6 +169,25 @@ const App: React.FC = () => {
             invoiceUrl: ''
           }));
           setFuelEntries(mappedFuel);
+        }
+
+        // Buscar Turnos (Shifts)
+        const { data: sData } = await supabase.from('shifts').select('*');
+        if (sData) {
+          const mappedShifts = sData.map((s: any) => ({
+            id: s.id,
+            vehicle_id: s.vehicle_id,
+            driverName: s.driver_name,
+            startTime: s.start_time,
+            endTime: s.end_time,
+            startKm: s.start_km,
+            endKm: s.end_km,
+            checklistData: s.checklist_data,
+            damageReport: s.damage_report,
+            signatureUrl: s.signature_url,
+            status: s.status
+          }));
+          setShifts(mappedShifts);
         }
 
       } catch (error) {
@@ -265,7 +294,7 @@ const App: React.FC = () => {
       case AppScreen.FLEET_MANAGEMENT:
         return <FleetManagement vehicles={vehicles} setVehicles={setVehicles} costCenters={costCenters} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.REPORTS:
-        return <Reports onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
+        return <Reports vehicles={vehicles} orders={orders} fuelEntries={fuelEntries} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.TIRE_BULLETIN:
         return <TireBulletin vehicles={vehicles} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.USER_MANAGEMENT:
@@ -273,7 +302,9 @@ const App: React.FC = () => {
       case AppScreen.SUPPLIER_MANAGEMENT:
         return <SupplierManagement onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.BACKLOG:
-        return <Backlog onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
+        return <Backlog shifts={shifts} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} />;
+      case AppScreen.SUPPLIER_QUOTE:
+        return <SupplierQuote onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} />;
       case AppScreen.SETTINGS:
         return <Settings
           isDarkMode={isDarkMode}
@@ -292,7 +323,7 @@ const App: React.FC = () => {
   return (
     <DeviceSimulator currentScreen={currentScreen} onNavigate={setCurrentScreen} showSidebar={isAuthenticated} userAvatar={userAvatar}>
       <div className="flex flex-col h-full min-h-full bg-background-light dark:bg-background-dark w-full overflow-x-hidden relative transition-colors duration-300">
-        {!isAuthenticated ? (
+        {!isAuthenticated && currentScreen !== AppScreen.SUPPLIER_QUOTE ? (
           <Login onLogin={(user) => setCurrentUser(user)} isDarkMode={isDarkMode} />
         ) : (
           <>

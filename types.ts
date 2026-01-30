@@ -76,3 +76,16 @@ export interface BacklogItem {
   requestDate: string;
   source: string;
 }
+export interface Shift {
+  id: string;
+  vehicle_id: string;
+  driverName: string;
+  startTime: string;
+  endTime?: string;
+  startKm: number;
+  endKm?: number;
+  checklistData?: any;
+  damageReport?: any;
+  signatureUrl?: string;
+  status: 'OPEN' | 'CLOSED';
+}
