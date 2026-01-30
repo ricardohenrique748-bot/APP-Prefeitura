@@ -17,7 +17,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
     abertas: orders.filter(os => os.status !== 'Finalizada').length,
     finalizadas: orders.filter(os => os.status === 'Finalizada').length,
     custoTotalManutencao: (orders.filter(os => os.isPaid).length * 1245).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-    custoTotalCombustivel: fuelEntries.reduce((acc, curr) => acc + curr.totalValue, 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    custoTotalCombustivel: fuelEntries.reduce((acc, curr) => acc + curr.totalValue, 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+    totalLitros: fuelEntries.reduce((acc, curr) => acc + curr.quantity, 0).toLocaleString('pt-BR') + ' L'
   };
 
   // Helper para determinar o intervalo de preventiva por tipo
@@ -96,7 +97,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
         </div>
         <div className="hidden md:flex flex-col justify-center bg-white dark:bg-card-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800/50 shadow-sm">
           <p className="text-[#1754cf] text-xs font-black uppercase mb-2 tracking-widest">Gasto Combust.</p>
-          <p className="text-xl font-black italic text-slate-900 dark:text-white leading-none tracking-tight">{osSummary.custoTotalCombustivel}</p>
+          <p className="text-xl font-black italic text-slate-900 dark:text-white leading-none tracking-tight">{osSummary.totalLitros}</p>
+          <p className="text-[10px] font-bold text-slate-400 mt-1">{osSummary.custoTotalCombustivel}</p>
         </div>
       </section>
 
@@ -108,7 +110,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
         </div>
         <div className="bg-white dark:bg-card-dark p-3 rounded-xl border border-slate-200 dark:border-slate-800/50 shadow-sm flex flex-col justify-center min-h-[70px]">
           <p className="text-[#1754cf] text-[9px] font-black uppercase mb-1 tracking-widest">Gasto Combust.</p>
-          <p className="text-lg font-black italic text-slate-900 dark:text-white leading-none tracking-tight">{osSummary.custoTotalCombustivel}</p>
+          <p className="text-lg font-black italic text-slate-900 dark:text-white leading-none tracking-tight">{osSummary.totalLitros}</p>
+          <p className="text-[8px] font-bold text-slate-400 mt-0.5">{osSummary.custoTotalCombustivel}</p>
         </div>
       </section>
 
