@@ -17,11 +17,11 @@ const Header: React.FC<HeaderProps> = ({ currentScreen, avatarUrl }) => {
 
   const getTitle = () => {
     switch (currentScreen) {
-      case AppScreen.DASHBOARD: return 'Painel de Gestão';
+      case AppScreen.DASHBOARD: return 'Smart Tech';
       case AppScreen.OS_CONTROL: return 'Controle de OS';
       case AppScreen.FUEL_CONTROL: return 'Controle de Combustível';
       case AppScreen.SETTINGS: return 'Ajustes';
-      default: return 'SMART TECH';
+      default: return 'Smart Tech';
     }
   };
 
