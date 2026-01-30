@@ -46,7 +46,7 @@ const Reports: React.FC<ReportsProps> = ({ onBack }) => {
             <span className="material-symbols-outlined text-xl">auto_awesome</span>
             <h3 className="font-bold text-sm uppercase tracking-wider">Insight da Frota (IA)</h3>
           </div>
-          
+
           {loading ? (
             <div className="flex flex-col gap-2 py-4 items-center">
               <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -55,7 +55,7 @@ const Reports: React.FC<ReportsProps> = ({ onBack }) => {
           ) : insight ? (
             <div className="space-y-3">
               <p className="text-sm leading-relaxed opacity-95 italic">"{insight}"</p>
-              <button 
+              <button
                 onClick={() => setInsight('')}
                 className="text-[10px] font-bold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full uppercase transition-colors"
               >
@@ -65,7 +65,7 @@ const Reports: React.FC<ReportsProps> = ({ onBack }) => {
           ) : (
             <div className="space-y-4">
               <p className="text-sm opacity-80">Obtenha recomendações inteligentes baseadas no comportamento atual da sua frota.</p>
-              <button 
+              <button
                 onClick={generateAIInsight}
                 className="w-full bg-white text-primary font-bold py-3 rounded-xl shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2"
               >
@@ -84,12 +84,12 @@ const Reports: React.FC<ReportsProps> = ({ onBack }) => {
       <section className="bg-white dark:bg-card-dark rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
         <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6">Custos Operacionais (R$)</h3>
         <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
             <BarChart data={performanceData}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#33415520" />
-              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#64748b'}} />
-              <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748b'}} />
-              <Tooltip 
+              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
+              <Tooltip
                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                 cursor={{ fill: '#1754cf10' }}
               />
