@@ -85,11 +85,11 @@ const App: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>(AppScreen.DASHBOARD);
 
   const [userAvatar, setUserAvatar] = useState(() => {
-    return localStorage.getItem('fleet_master_avatar') || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&h=400&fit=crop";
+    return localStorage.getItem('smart_tech_avatar') || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&h=400&fit=crop";
   });
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem('fleet_master_theme');
+    const saved = localStorage.getItem('smart_tech_theme');
     return saved ? saved === 'dark' : false;
   });
 
@@ -225,16 +225,15 @@ const App: React.FC = () => {
     });
   }, [costCenters, fuelEntries, orders]);
 
-  useEffect(() => { localStorage.setItem('fleet_master_cost_centers', JSON.stringify(costCenters)); }, [costCenters]);
-  useEffect(() => { localStorage.setItem('fleet_master_vehicles', JSON.stringify(vehicles)); }, [vehicles]);
-  useEffect(() => { localStorage.setItem('fleet_master_orders', JSON.stringify(orders)); }, [orders]);
-  useEffect(() => { localStorage.setItem('fleet_master_orders', JSON.stringify(orders)); }, [orders]);
-  useEffect(() => { localStorage.setItem('fleet_master_fuel_entries', JSON.stringify(fuelEntries)); }, [fuelEntries]);
-  useEffect(() => { localStorage.setItem('fleet_master_active_shifts', JSON.stringify(activeShifts)); }, [activeShifts]);
+  useEffect(() => { localStorage.setItem('smart_tech_cost_centers', JSON.stringify(costCenters)); }, [costCenters]);
+  useEffect(() => { localStorage.setItem('smart_tech_vehicles', JSON.stringify(vehicles)); }, [vehicles]);
+  useEffect(() => { localStorage.setItem('smart_tech_orders', JSON.stringify(orders)); }, [orders]);
+  useEffect(() => { localStorage.setItem('smart_tech_fuel_entries', JSON.stringify(fuelEntries)); }, [fuelEntries]);
+  useEffect(() => { localStorage.setItem('smart_tech_active_shifts', JSON.stringify(activeShifts)); }, [activeShifts]);
 
   useEffect(() => {
-    if (isDarkMode) { document.documentElement.classList.add('dark'); localStorage.setItem('fleet_master_theme', 'dark'); }
-    else { document.documentElement.classList.remove('dark'); localStorage.setItem('fleet_master_theme', 'light'); }
+    if (isDarkMode) { document.documentElement.classList.add('dark'); localStorage.setItem('smart_tech_theme', 'dark'); }
+    else { document.documentElement.classList.remove('dark'); localStorage.setItem('smart_tech_theme', 'light'); }
   }, [isDarkMode]);
 
   const updateVehicleKm = async (id: string, newKm: number) => {

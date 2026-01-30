@@ -19,8 +19,8 @@ const Login: React.FC<LoginProps> = ({ onLogin, isDarkMode = false }) => {
   const [recoverySent, setRecoverySent] = useState(false);
 
   useEffect(() => {
-    const savedEmail = localStorage.getItem('fleet_master_remember_email');
-    const savedRemember = localStorage.getItem('fleet_master_remember_me') === 'true';
+    const savedEmail = localStorage.getItem('smart_tech_remember_email');
+    const savedRemember = localStorage.getItem('smart_tech_remember_me') === 'true';
     if (savedEmail) {
       setEmail(savedEmail);
       setRememberMe(savedRemember);
@@ -45,11 +45,11 @@ const Login: React.FC<LoginProps> = ({ onLogin, isDarkMode = false }) => {
         };
 
         if (rememberMe) {
-          localStorage.setItem('fleet_master_remember_email', email);
-          localStorage.setItem('fleet_master_remember_me', 'true');
+          localStorage.setItem('smart_tech_remember_email', email);
+          localStorage.setItem('smart_tech_remember_me', 'true');
         } else {
-          localStorage.removeItem('fleet_master_remember_email');
-          localStorage.removeItem('fleet_master_remember_me');
+          localStorage.removeItem('smart_tech_remember_email');
+          localStorage.removeItem('smart_tech_remember_me');
         }
         onLogin(adminUser);
       }

@@ -233,7 +233,7 @@ const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders }) =>
       </div>
 
       {selectedOS && (
-        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-300 p-0 md:p-8">
+        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-300 p-0 md:p-8" onClick={() => { setSelectedOSId(null); setIsEditing(false); }}>
           <div
             className="w-full max-w-md md:max-w-4xl bg-white dark:bg-card-dark rounded-t-[2rem] md:rounded-[2rem] p-6 md:p-8 space-y-4 md:space-y-6 animate-in slide-in-from-bottom-full md:zoom-in-95 duration-500 shadow-2xl h-[90vh] md:h-auto md:max-h-[90vh] overflow-y-auto no-scrollbar border dark:border-slate-700"
             onClick={(e) => e.stopPropagation()}
@@ -347,27 +347,125 @@ const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders }) =>
                       </div>
                     </div>
                   </div>
+                </section>
+
+                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-xl border border-primary/10">
+                  <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-1">Valor da OS (R$)</p>
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editForm.costValue || 0}
+                      onChange={e => setEditForm({ ...editForm, costValue: parseFloat(e.target.value) })}
+                      className="text-xl font-black text-primary bg-transparent outline-none w-full"
+                    />
+                  ) : (
+                    <p className="text-xl font-black text-primary">R$ {(selectedOS.costValue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  )}
+                </div>
               </div>
-            </section>
+
+              {/* Right Column (Actions & Docs) */}
+              <div className="space-y-4">
+                <section className="space-y-3">
+                  <h4 className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Documentos e Faturamento</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest text-center">Orçamento Fornecedor</p>
+                      <input type="file" accept="image/*,application/pdf" className="hidden" ref={quoteInputRef} onChange={(e) => handleAttachDocument(e, 'quote')} />
+                      {!selectedOS.quoteUrl ? (
+                        <button onClick={() => quoteInputRef.current?.click()} className="w-full h-24 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center gap-1 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
+                          <span className="material-symbols-outlined text-xl">request_quote</span>
+                          <span className="text-[7px] font-black uppercase tracking-tighter text-center">Anexar Orçamento</span>
+                        </button>
+                      ) : (
+                        <div className="relative group w-full h-24 rounded-2xl overflow-hidden border border-blue-500/30 bg-blue-50 dark:bg-blue-900/10 shadow-inner">
+                          <img src={selectedOS.quoteUrl} className="w-full h-full object-cover opacity-90" alt="Orçamento" />
+                          <button onClick={() => handleRemoveDocument(selectedOS.id, 'quote')} className="absolute top-1 right-1 size-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 hover:bg-red-600"><span className="material-symbols-outlined text-[12px]">close</span></button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest text-center">Nota Fiscal (NF-e)</p>
+                      <input type="file" accept="image/*" capture="environment" className="hidden" ref={invoiceInputRef} onChange={(e) => handleAttachDocument(e, 'invoice')} />
+                      {!selectedOS.invoiceUrl ? (
+                        <button onClick={() => invoiceInputRef.current?.click()} className="w-full h-24 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center gap-1 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
+                          <span className="material-symbols-outlined text-xl">receipt_long</span>
+                          <span className="text-[7px] font-black uppercase tracking-tighter text-center">Anexar Nota Fiscal</span>
+                        </button>
+                      ) : (
+                        <div className="relative group w-full h-24 rounded-2xl overflow-hidden border border-emerald-500/30 bg-emerald-50 dark:bg-emerald-900/10 shadow-inner">
+                          <img src={selectedOS.invoiceUrl} className="w-full h-full object-cover opacity-90" alt="NF" />
+                          <button onClick={() => handleRemoveDocument(selectedOS.id, 'invoice')} className="absolute top-1 right-1 size-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 hover:bg-red-600"><span className="material-symbols-outlined text-[12px]">close</span></button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </section>
+
+                <div className="pt-2 space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    {isEditing ? (
+                      <>
+                        <button onClick={cancelEditing} className="h-12 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all text-slate-500">
+                          CANCELAR
+                        </button>
+                        <button onClick={saveEditing} className="h-12 bg-primary rounded-xl flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all text-white shadow-lg shadow-primary/30">
+                          SALVAR
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={startEditing} className="h-12 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all text-slate-700 dark:text-slate-300">
+                          <span className="material-symbols-outlined text-base">edit</span> EDITAR
+                        </button>
+                        <button onClick={() => handleTogglePayment(selectedOS.id)} className={`h-12 rounded-xl flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg ${selectedOS.isPaid ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700' : 'bg-accent-success text-white shadow-accent-success/30'}`}>
+                          <span className="material-symbols-outlined text-base">payments</span>
+                          {selectedOS.isPaid ? 'ESTORNAR PGTO' : 'CONFIRMAR PGTO'}
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <button
+                      disabled={selectedOS.status === 'Finalizada'}
+                      onClick={() => handleFinishOS(selectedOS.id)}
+                      className={`w-full h-14 rounded-xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest shadow-xl transition-all active:scale-[0.98] ${selectedOS.status === 'Finalizada' ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed' : 'bg-primary text-white shadow-primary/30'}`}
+                    >
+                      <span className="material-symbols-outlined text-lg">verified</span>
+                      {selectedOS.status === 'Finalizada' ? 'ORDEM FINALIZADA' : 'FINALIZAR MANUTENÇÃO'}
+                    </button>
+
+                    {!isEditing && (
+                      <button onClick={() => setShowDeleteConfirm(true)} className="w-full h-10 text-accent-error text-[9px] font-black uppercase tracking-[0.2em] border border-accent-error/20 rounded-lg hover:bg-accent-error/5 transition-colors">
+                        Excluir Ordem de Serviço
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Received Quotes Section */}
             {receivedQuotes.length > 0 && (
-              <section className="space-y-3">
-                <h4 className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Orçamentos Recebidos ({receivedQuotes.length})</h4>
-                <div className="space-y-2">
+              <section className="space-y-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Orçamentos Recebidos ({receivedQuotes.length})</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {receivedQuotes.map((quote) => (
-                    <div key={quote.id} className="bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800 p-3 rounded-2xl flex justify-between items-center shadow-sm">
+                    <div key={quote.id} className="bg-white dark:bg-background-dark border border-slate-100 dark:border-slate-800 p-4 rounded-2xl flex justify-between items-center shadow-sm">
                       <div>
-                        <p className="text-[10px] font-black uppercase text-slate-900 dark:text-white">{quote.supplier_name}</p>
+                        <p className="text-xs font-black uppercase text-slate-900 dark:text-white">{quote.supplier_name}</p>
                         <p className="text-[9px] font-bold text-slate-500 tracking-wider">Prazo: {quote.deadline_days} dias • {new Date(quote.created_at).toLocaleDateString()}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-black text-primary">R$ {parseFloat(quote.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                         <button
                           onClick={() => setEditForm({ ...editForm, costValue: parseFloat(quote.value) })}
-                          className="text-[8px] font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors"
+                          className="text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors underline"
                         >
-                          Aplicar Valor
+                          Aplicar
                         </button>
                       </div>
                     </div>
@@ -376,167 +474,37 @@ const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders }) =>
               </section>
             )}
           </div>
+        </div>
+      )}
 
-          {/* Right Column (Actions & Docs) */}
-          <div className="space-y-4">
-            <section className="space-y-3">
-              <h4 className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Documentos e Faturamento</h4>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest text-center">Orçamento Fornecedor</p>
-                  <input type="file" accept="image/*,application/pdf" className="hidden" ref={quoteInputRef} onChange={(e) => handleAttachDocument(e, 'quote')} />
-                  {!selectedOS.quoteUrl ? (
-                    <button onClick={() => quoteInputRef.current?.click()} className="w-full h-24 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center gap-1 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
-                      <span className="material-symbols-outlined text-xl">request_quote</span>
-                      <span className="text-[7px] font-black uppercase tracking-tighter text-center">Anexar Orçamento</span>
-                    </button>
-                  ) : (
-                    <div className="relative group w-full h-24 rounded-2xl overflow-hidden border border-blue-500/30 bg-blue-50 dark:bg-blue-900/10 shadow-inner">
-                      <img src={selectedOS.quoteUrl} className="w-full h-full object-cover opacity-90" alt="Orçamento" />
-                      <button onClick={() => handleRemoveDocument(selectedOS.id, 'quote')} className="absolute top-1 right-1 size-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 hover:bg-red-600"><span className="material-symbols-outlined text-[12px]">close</span></button>
-                      <div className="absolute bottom-1 right-1 flex gap-1">
-                        <a
-                          href={selectedOS.quoteUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="size-6 bg-primary/10 text-primary rounded-md flex items-center justify-center active:scale-90 transition-all"
-                          title="Visualizar"
-                        >
-                          <span className="material-symbols-outlined text-[12px]">visibility</span>
-                        </a>
-                        <a
-                          href={selectedOS.quoteUrl}
-                          download={`ORCAMENTO_${selectedOS.plate}_${selectedOS.id}.pdf`}
-                          className="size-6 bg-accent-success/10 text-accent-success rounded-md flex items-center justify-center active:scale-90 transition-all"
-                          title="Baixar"
-                        >
-                          <span className="material-symbols-outlined text-[12px]">download</span>
-                        </a>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-1.5">
-                  <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest text-center">Nota Fiscal (NF-e)</p>
-                  <input type="file" accept="image/*" capture="environment" className="hidden" ref={invoiceInputRef} onChange={(e) => handleAttachDocument(e, 'invoice')} />
-                  {!selectedOS.invoiceUrl ? (
-                    <button onClick={() => invoiceInputRef.current?.click()} className="w-full h-24 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center gap-1 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
-                      <span className="material-symbols-outlined text-xl">receipt_long</span>
-                      <span className="text-[7px] font-black uppercase tracking-tighter text-center">Anexar Nota Fiscal</span>
-                    </button>
-                  ) : (
-                    <div className="relative group w-full h-24 rounded-2xl overflow-hidden border border-emerald-500/30 bg-emerald-50 dark:bg-emerald-900/10 shadow-inner">
-                      <img src={selectedOS.invoiceUrl} className="w-full h-full object-cover opacity-90" alt="NF" />
-                      <button onClick={() => handleRemoveDocument(selectedOS.id, 'invoice')} className="absolute top-1 right-1 size-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 hover:bg-red-600"><span className="material-symbols-outlined text-[12px]">close</span></button>
-                      <div className="absolute bottom-1 right-1 flex gap-1">
-                        <a
-                          href={selectedOS.invoiceUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="size-6 bg-primary/10 text-primary rounded-md flex items-center justify-center active:scale-90 transition-all"
-                          title="Visualizar"
-                        >
-                          <span className="material-symbols-outlined text-[12px]">visibility</span>
-                        </a>
-                        <a
-                          href={selectedOS.invoiceUrl}
-                          download={`NOTA_FISCAL_${selectedOS.plate}_${selectedOS.id}.pdf`}
-                          className="size-6 bg-accent-success/10 text-accent-success rounded-md flex items-center justify-center active:scale-90 transition-all"
-                          title="Baixar"
-                        >
-                          <span className="material-symbols-outlined text-[12px]">download</span>
-                        </a>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </section>
-
-            <div className="pt-2 space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                {isEditing ? (
-                  <>
-                    <button onClick={cancelEditing} className="h-12 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all text-slate-500 hover:bg-slate-200">
-                      CANCELAR
-                    </button>
-                    <button onClick={saveEditing} className="h-12 bg-primary rounded-xl flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all text-white shadow-lg shadow-primary/30 hover:bg-primary/90">
-                      SALVAR
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button onClick={startEditing} className="h-12 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
-                      <span className="material-symbols-outlined text-base">edit</span> EDITAR
-                    </button>
-                    <button onClick={() => handleTogglePayment(selectedOS.id)} className={`h-12 rounded-xl flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg ${selectedOS.isPaid ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700' : 'bg-accent-success text-white shadow-accent-success/30 hover:bg-accent-success/90'}`}>
-                      <span className="material-symbols-outlined text-base">payments</span>
-                      {selectedOS.isPaid ? 'ESTORNAR PGTO' : 'CONFIRMAR PGTO'}
-                    </button>
-                  </>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <button
-                  disabled={selectedOS.status === 'Finalizada'}
-                  onClick={() => handleFinishOS(selectedOS.id)}
-                  className={`w-full h-14 rounded-xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest shadow-xl transition-all active:scale-[0.98] ${selectedOS.status === 'Finalizada' ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed' : 'bg-primary text-white shadow-primary/30 hover:bg-primary/90'}`}
-                >
-                  <span className="material-symbols-outlined text-lg">verified</span>
-                  {selectedOS.status === 'Finalizada' ? 'ORDEM FINALIZADA' : 'FINALIZAR MANUTENÇÃO'}
-                </button>
-
-                {!isEditing && (
-                  <button
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="w-full h-10 text-accent-error text-[9px] font-black uppercase tracking-[0.2em] border border-accent-error/20 rounded-lg hover:bg-accent-error/5 transition-colors"
-                  >
-                    Excluir Ordem de Serviço
-                  </button>
-                )}
-              </div>
+      {/* Delete Confirmation Overlay */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-8 animate-in fade-in duration-200" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="bg-white dark:bg-card-dark rounded-3xl p-6 w-full max-w-xs text-center space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="size-16 bg-accent-error/10 text-accent-error rounded-full flex items-center justify-center mx-auto mb-2 animate-pulse">
+              <span className="material-symbols-outlined text-3xl font-black">delete_forever</span>
+            </div>
+            <div>
+              <h3 className="text-base font-black uppercase italic mb-1 tracking-tighter">Apagar esta OS?</h3>
+              <p className="text-[10px] text-slate-500 font-medium">Esta ação é permanente e removerá todos os anexos vinculados.</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={confirmDelete}
+                className="w-full h-12 bg-accent-error text-white font-black rounded-xl uppercase tracking-widest shadow-lg shadow-accent-error/20 text-xs hover:bg-accent-error/90"
+              >
+                Sim, Excluir
+              </button>
+              <button onClick={() => setShowDeleteConfirm(false)} className="w-full h-10 text-slate-400 font-bold uppercase text-[9px] hover:text-slate-600">
+                Voltar
+              </button>
             </div>
           </div>
         </div>
-
-          </div>
-        </div >
       )}
 
-{/* Delete Confirmation Overlay */ }
-{
-  showDeleteConfirm && (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-8 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-card-dark rounded-3xl p-6 w-full max-w-xs text-center space-y-4 shadow-2xl">
-        <div className="size-16 bg-accent-error/10 text-accent-error rounded-full flex items-center justify-center mx-auto mb-2 animate-pulse">
-          <span className="material-symbols-outlined text-3xl font-black">delete_forever</span>
-        </div>
-        <div>
-          <h3 className="text-base font-black uppercase italic mb-1 tracking-tighter">Apagar esta OS?</h3>
-          <p className="text-[10px] text-slate-500 font-medium">Esta ação é permanente e removerá todos os anexos vinculados.</p>
-        </div>
-        <div className="flex flex-col gap-2">
-          <button
-            onClick={confirmDelete}
-            className="w-full h-12 bg-accent-error text-white font-black rounded-xl uppercase tracking-widest shadow-lg shadow-accent-error/20 text-xs hover:bg-accent-error/90"
-          >
-            Sim, Excluir
-          </button>
-          <button
-            onClick={() => setShowDeleteConfirm(false)}
-            className="w-full h-10 text-slate-400 font-bold uppercase text-[9px] hover:text-slate-600"
-          >
-            Voltar
-          </button>
-        </div>
-      </div>
+      <div className="h-24 md:hidden"></div>
     </div>
-  )
-}
-
-<div className="h-24 md:hidden"></div>
-    </div >
   );
 };
 

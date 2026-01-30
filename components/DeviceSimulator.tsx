@@ -21,21 +21,21 @@ const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({ children, currentScre
   ];
 
   return (
-    <div className="min-h-screen w-full bg-white dark:bg-[#0f1218] transition-colors duration-300 flex text-slate-900 dark:text-white font-sans">
+    <div className="min-h-screen w-full bg-background-light dark:bg-background-dark transition-colors duration-300 flex text-slate-900 dark:text-white font-sans">
 
       {/* Desktop Sidebar */}
       {showSidebar && (
-        <aside className="hidden md:flex w-64 flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a1c23] flex-shrink-0 relative z-20">
+        <aside className="hidden md:flex w-64 flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-card-dark flex-shrink-0 relative z-20">
           <div className="h-32 flex items-center justify-center py-4 px-4 border-b border-slate-100 dark:border-slate-800/50 overflow-hidden">
             <img
               src="/logo-light.png"
               alt="Smart Tech"
-              className="h-full w-auto object-contain scale-150 dark:hidden transition-all hover:scale-[1.6] duration-300"
+              className="h-full w-auto object-contain scale-150 dark:hidden transition-all hover:scale-[1.6] duration-300 mix-blend-multiply"
             />
             <img
               src="/logo-dark.png"
               alt="Smart Tech"
-              className="h-full w-auto object-contain scale-150 hidden dark:block transition-all hover:scale-[1.6] duration-300"
+              className="h-full w-auto object-contain scale-150 hidden dark:block transition-all hover:scale-[1.6] duration-300 mix-blend-screen"
             />
           </div>
 
@@ -74,7 +74,7 @@ const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({ children, currentScre
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {/* Desktop Header (Optional) */}
         {showSidebar && (
-          <header className="hidden md:flex h-16 border-b border-slate-200 dark:border-slate-800 items-center justify-between px-8 bg-white/80 dark:bg-[#0f1218]/80 backdrop-blur-md z-10">
+          <header className="hidden md:flex h-16 border-b border-slate-200 dark:border-slate-800 items-center justify-between px-8 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md z-10">
             <h2 className="text-lg font-black italic uppercase tracking-tight text-slate-700 dark:text-slate-200">
               {menuItems.find(i => i.screen === currentScreen)?.label || 'Painel'}
             </h2>

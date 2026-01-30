@@ -216,7 +216,7 @@ const SupplierQuote: React.FC<SupplierQuoteProps> = ({ onBack }) => {
       )}
 
       <div className="text-center pt-10 opacity-30">
-        <p className="text-[9px] font-bold uppercase tracking-widest">FleetMaster © Fornecedores Externos v1.0</p>
+        <p className="text-[9px] font-bold uppercase tracking-widest">Smart Tech © Fornecedores Externos v1.0</p>
       </div>
     </div>
   );
