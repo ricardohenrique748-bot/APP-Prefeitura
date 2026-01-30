@@ -1,6 +1,16 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+    --color-primary: #1754cf;
+    --color-background-light: #ffffff;
+    --color-background-dark: #111621;
+    --color-card-dark: #1c2537;
+    --color-accent-success: #0bda5e;
+    --color-accent-error: #fa6238;
+    --color-accent-warning: #f59e0b;
+
+    --font-family-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
 
 .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;

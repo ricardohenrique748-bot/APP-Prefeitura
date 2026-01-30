@@ -288,11 +288,13 @@ const App: React.FC = () => {
             <div className="md:hidden shrink-0">
               <Header currentScreen={currentScreen} avatarUrl={userAvatar} />
             </div>
-            <main className={`flex-1 overflow-y-auto w-full`}>
+            <main className="flex-1 overflow-y-auto w-full pb-20">
               {renderScreen()}
             </main>
-            <div className="md:hidden z-50 shrink-0">
-              <Navigation activeScreen={currentScreen} onNavigate={(screen) => setCurrentScreen(screen)} />
+            <div className="md:hidden fixed bottom-5 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
+              <div className="w-full max-w-md pointer-events-auto">
+                <Navigation activeScreen={currentScreen} onNavigate={(screen) => setCurrentScreen(screen)} />
+              </div>
             </div>
           </>
         )}
