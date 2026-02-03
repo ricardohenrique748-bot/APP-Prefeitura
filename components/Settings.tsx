@@ -22,6 +22,7 @@ const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onT
     { icon: 'assignment_late', label: 'Backlog de Serviços', screen: AppScreen.BACKLOG, color: 'text-rose-500', roles: ['ADMIN', 'GESTOR'] },
     { icon: 'tire_repair', label: 'Boletim de Pneus', screen: AppScreen.TIRE_BULLETIN, color: 'text-accent-success', roles: ['ADMIN', 'GESTOR', 'MOTORISTA', 'OPERADOR'] },
     { icon: 'assessment', label: 'Relatórios Avançados', screen: AppScreen.REPORTS, color: 'text-blue-400', roles: ['ADMIN', 'GESTOR'] },
+    { icon: 'history_edu', label: 'Histórico de Checklist', screen: AppScreen.CHECKLIST_HISTORY, color: 'text-purple-400', roles: ['ADMIN', 'GESTOR', 'MOTORISTA'] },
     { icon: 'group', label: 'Gestão de Usuários', screen: AppScreen.USER_MANAGEMENT, color: 'text-indigo-400', roles: ['ADMIN'] },
     { icon: 'sync', label: 'Sincronização Manual', color: 'text-slate-400', roles: ['ADMIN', 'GESTOR', 'MOTORISTA', 'OPERADOR'] }
   ];

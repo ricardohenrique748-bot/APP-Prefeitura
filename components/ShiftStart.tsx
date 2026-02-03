@@ -7,7 +7,7 @@ interface ShiftStartProps {
   vehicles: Vehicle[];
   onUpdateKm: (id: string, km: number) => void;
   activeShifts: string[];
-  onStartShift: (id: string) => void;
+  onStartShift: (data: any) => void;
   onFinishShift: (id: string) => void;
 }
 
@@ -137,7 +137,25 @@ const ShiftStart: React.FC<ShiftStartProps> = ({ onBack, vehicles, onUpdateKm, a
   const handleFinalize = () => {
     if (selectedVehicle && km) {
       onUpdateKm(selectedVehicle.id, parseInt(km));
-      onStartShift(selectedVehicle.id);
+
+      const signatureData = canvasRef.current?.toDataURL() || undefined;
+
+      const shiftData = {
+        vehicle_id: selectedVehicle.id,
+        driverName: formData.driver,
+        startTime: new Date().toISOString(),
+        startKm: parseInt(km),
+        checklistData: checks,
+        damageReport: hasDamage ? {
+          type: damageType,
+          level: damageLevel,
+          description: damageDesc,
+          photos: damagePhotos
+        } : null,
+        signatureUrl: signatureData
+      };
+
+      onStartShift(shiftData);
       onBack();
     }
   };

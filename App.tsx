@@ -21,6 +21,7 @@ import UserManagement from './components/UserManagement';
 import SupplierManagement from './components/SupplierManagement';
 import Backlog from './components/Backlog';
 import SupplierQuote from './components/SupplierQuote';
+import ChecklistHistory from './components/ChecklistHistory';
 
 export interface OSDetail {
   id: string;
@@ -255,14 +256,48 @@ const App: React.FC = () => {
     setFuelEntries(prev => [entry, ...prev]);
   };
 
-  const handleStartShift = (vehicleId: string) => {
-    if (!activeShifts.includes(vehicleId)) {
-      setActiveShifts(prev => [...prev, vehicleId]);
+  const handleStartShift = async (shiftData: any) => {
+    const newShift: Shift = {
+      id: Math.random().toString(36).substr(2, 9),
+      vehicle_id: shiftData.vehicle_id,
+      driverName: shiftData.driverName,
+      startTime: shiftData.startTime,
+      startKm: shiftData.startKm,
+      checklistData: shiftData.checklistData,
+      damageReport: shiftData.damageReport,
+      signatureUrl: shiftData.signatureUrl,
+      status: 'OPEN'
+    };
+
+    setShifts(prev => [newShift, ...prev]);
+
+    if (!activeShifts.includes(shiftData.vehicle_id)) {
+      setActiveShifts(prev => [...prev, shiftData.vehicle_id]);
     }
+
+    // Optional: Save to Supabase here if you had the table structure ready
   };
 
   const handleFinishShift = (vehicleId: string) => {
+    setShifts(prev => prev.map(s => {
+      if (s.vehicle_id === vehicleId && s.status === 'OPEN') {
+        return {
+          ...s,
+          endTime: new Date().toISOString(),
+          status: 'CLOSED'
+        };
+      }
+      return s;
+    }));
     setActiveShifts(prev => prev.filter(id => id !== vehicleId));
+  };
+
+  const handleUpdateShift = (updatedShift: Shift) => {
+    setShifts(prev => prev.map(s => s.id === updatedShift.id ? updatedShift : s));
+  };
+
+  const handleDeleteShift = (id: string) => {
+    setShifts(prev => prev.filter(s => s.id !== id));
   };
 
   const renderScreen = () => {
@@ -304,6 +339,14 @@ const App: React.FC = () => {
         return <Backlog shifts={shifts} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} />;
       case AppScreen.SUPPLIER_QUOTE:
         return <SupplierQuote onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} />;
+      case AppScreen.CHECKLIST_HISTORY:
+        return <ChecklistHistory
+          shifts={shifts}
+          vehicles={vehicles}
+          onBack={() => setCurrentScreen(AppScreen.SETTINGS)}
+          onEdit={handleUpdateShift}
+          onDelete={handleDeleteShift}
+        />;
       case AppScreen.SETTINGS:
         return <Settings
           isDarkMode={isDarkMode}
