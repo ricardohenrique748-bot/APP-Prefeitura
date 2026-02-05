@@ -10,10 +10,11 @@ interface SettingsProps {
   avatarUrl: string;
   onAvatarChange: (newAvatar: string) => void;
   userRole: string;
+  userName: string;
   onSync: () => void;
 }
 
-const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onToggleTheme, avatarUrl, onAvatarChange, userRole, onSync }) => {
+const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onToggleTheme, avatarUrl, onAvatarChange, userRole, userName, onSync }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const allMenuItems = [
@@ -66,7 +67,7 @@ const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onT
               <img
                 src={avatarUrl}
                 className="w-full h-full object-cover"
-                alt="Ricardo Luz"
+                alt={userName}
               />
             </div>
             <button
@@ -77,7 +78,7 @@ const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onT
             </button>
           </div>
           <div>
-            <h3 className="font-bold text-base md:text-2xl dark:text-white transition-colors">Ricardo Luz</h3>
+            <h3 className="font-bold text-base md:text-2xl dark:text-white transition-colors">{userName}</h3>
             <p className="text-[10px] md:text-sm text-slate-500 font-medium mt-0.5">Gestor de Frota • ID #8842</p>
           </div>
         </div>

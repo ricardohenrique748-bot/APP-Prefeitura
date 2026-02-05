@@ -27,14 +27,25 @@ const Login: React.FC<LoginProps> = ({ onLogin, isDarkMode = false }) => {
     }
   }, []);
 
+  const loginUser = (user: User) => {
+    if (rememberMe) {
+      localStorage.setItem('smart_tech_remember_email', email);
+      localStorage.setItem('smart_tech_remember_me', 'true');
+    } else {
+      localStorage.removeItem('smart_tech_remember_email');
+      localStorage.removeItem('smart_tech_remember_me');
+    }
+    onLogin(user);
+  };
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     setTimeout(() => {
-      // Logic for Admin
-      if ((email === 'ricardo.luz@prefeitura.gov.br' || email === 'ricardo.luz@eunaman.com.br' || email === 'Roosevelt92@gmail.com') && password === '123456') {
+      // Logic for Admin (Ricardo)
+      if ((email === 'ricardo.luz@prefeitura.gov.br' || email === 'ricardo.luz@eunaman.com.br') && password === '123456') {
         const adminUser: User = {
           id: '1',
           name: 'Ricardo Luz',
@@ -43,15 +54,19 @@ const Login: React.FC<LoginProps> = ({ onLogin, isDarkMode = false }) => {
           status: 'ACTIVE',
           avatar: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&h=400&fit=crop"
         };
-
-        if (rememberMe) {
-          localStorage.setItem('smart_tech_remember_email', email);
-          localStorage.setItem('smart_tech_remember_me', 'true');
-        } else {
-          localStorage.removeItem('smart_tech_remember_email');
-          localStorage.removeItem('smart_tech_remember_me');
-        }
-        onLogin(adminUser);
+        loginUser(adminUser);
+      }
+      // Logic for Admin (Pedro)
+      else if (email === 'Roosevelt92@gmail.com' && password === '123456') {
+        const adminUser: User = {
+          id: '3',
+          name: 'Pedro',
+          email: email,
+          role: 'ADMIN',
+          status: 'ACTIVE',
+          avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop"
+        };
+        loginUser(adminUser);
       }
       // Logic for Motorista
       else if (email === 'motorista@prefeitura.gov.br' && password === '123456') {

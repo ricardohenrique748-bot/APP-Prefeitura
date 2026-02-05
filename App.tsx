@@ -450,6 +450,7 @@ const App: React.FC = () => {
           onAvatarChange={(nav) => setUserAvatar(nav)}
           onLogout={() => { setCurrentUser(null); setCurrentScreen(AppScreen.DASHBOARD); localStorage.removeItem('smart_tech_user'); }}
           userRole={currentUser?.role || 'OPERADOR'}
+          userName={currentUser?.name || 'Administrador'}
           onSync={startSync}
         />;
       default:

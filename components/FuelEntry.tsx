@@ -29,6 +29,7 @@ const FuelEntry: React.FC<FuelEntryProps> = ({ onBack, onSave, vehicles, supplie
     item: 'Diesel S10',
     quantity: '',
     unitPrice: '',
+    km: '',
     supplier: ''
   });
 
@@ -140,25 +141,35 @@ const FuelEntry: React.FC<FuelEntryProps> = ({ onBack, onSave, vehicles, supplie
             </div>
           </label>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-3">
             <label className="block space-y-1">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Quantidade (L)</span>
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest px-1">KM Atual</span>
+              <input
+                type="number"
+                value={formData.km}
+                onChange={(e) => setFormData({ ...formData, km: e.target.value })}
+                placeholder="0"
+                className="w-full h-14 rounded-2xl bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 px-3 outline-none font-mono font-bold text-sm focus:ring-2 focus:ring-primary"
+              />
+            </label>
+            <label className="block space-y-1">
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest px-1">Litros</span>
               <input
                 type="number"
                 value={formData.quantity}
                 onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                 placeholder="0.00"
-                className="w-full h-14 rounded-2xl bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 px-4 outline-none font-mono font-black text-lg focus:ring-2 focus:ring-primary"
+                className="w-full h-14 rounded-2xl bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 px-3 outline-none font-mono font-black text-sm focus:ring-2 focus:ring-primary"
               />
             </label>
             <label className="block space-y-1">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Vlr Unitário (R$)</span>
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest px-1">Valor Unit.</span>
               <input
                 type="number"
                 value={formData.unitPrice}
                 onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
                 placeholder="0.00"
-                className="w-full h-14 rounded-2xl bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 px-4 outline-none font-mono font-black text-lg text-primary focus:ring-2 focus:ring-primary"
+                className="w-full h-14 rounded-2xl bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 px-3 outline-none font-mono font-black text-sm text-primary focus:ring-2 focus:ring-primary"
               />
             </label>
           </div>
