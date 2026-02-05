@@ -13,14 +13,20 @@ interface DeviceSimulatorProps {
 
 const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({ children, currentScreen, onNavigate, showSidebar = true, userAvatar, userName, userRole }) => {
   const menuItems = [
-    { icon: 'dashboard', label: 'Painel', screen: AppScreen.DASHBOARD },
-    { icon: 'local_shipping', label: 'Frota', screen: AppScreen.FLEET_MANAGEMENT },
-    { icon: 'assignment', label: 'Ordens de Serviço', screen: AppScreen.OS_CONTROL },
-    { icon: 'local_gas_station', label: 'Combustível', screen: AppScreen.FUEL_CONTROL },
-    { icon: 'account_balance_wallet', label: 'Centros de Custo', screen: AppScreen.COST_CENTERS },
-    { icon: 'tire_repair', label: 'Pneus', screen: AppScreen.TIRE_BULLETIN },
-    { icon: 'settings', label: 'Configurações', screen: AppScreen.SETTINGS },
+    { icon: 'dashboard', label: 'Painel', screen: AppScreen.DASHBOARD, roles: ['ADMIN', 'GESTOR', 'OPERADOR', 'MOTORISTA'] },
+    { icon: 'local_shipping', label: 'Frota', screen: AppScreen.FLEET_MANAGEMENT, roles: ['ADMIN'] },
+    { icon: 'assignment', label: 'Ordens de Serviço', screen: AppScreen.OS_CONTROL, roles: ['ADMIN', 'GESTOR', 'OPERADOR', 'MOTORISTA'] },
+    { icon: 'local_gas_station', label: 'Combustível', screen: AppScreen.FUEL_CONTROL, roles: ['ADMIN', 'GESTOR', 'MOTORISTA'] },
+    { icon: 'account_balance_wallet', label: 'Centros de Custo', screen: AppScreen.COST_CENTERS, roles: ['ADMIN'] },
+    { icon: 'tire_repair', label: 'Pneus', screen: AppScreen.TIRE_BULLETIN, roles: ['ADMIN', 'GESTOR', 'OPERADOR'] },
+    { icon: 'pending_actions', label: 'Backlog', screen: AppScreen.BACKLOG, roles: ['ADMIN', 'GESTOR', 'OPERADOR'] },
+    { icon: 'checklist', label: 'Checklist', screen: AppScreen.CHECKLIST_HISTORY, roles: ['ADMIN', 'GESTOR', 'MOTORISTA'] },
+    { icon: 'settings', label: 'Configurações', screen: AppScreen.SETTINGS, roles: ['ADMIN', 'GESTOR', 'OPERADOR', 'MOTORISTA'] },
   ];
+
+  const filteredMenuItems = menuItems.filter(item =>
+    !userRole || (item.roles && item.roles.includes(userRole))
+  );
 
   return (
     <div className="min-h-screen w-full bg-background-light dark:bg-background-dark transition-colors duration-300 flex text-slate-900 dark:text-white font-sans">
@@ -42,7 +48,7 @@ const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({ children, currentScre
           </div>
 
           <nav className="flex-1 px-4 space-y-1.5 py-4 overflow-y-auto">
-            {menuItems.map(item => (
+            {filteredMenuItems.map(item => (
               <button
                 key={item.screen}
                 onClick={() => onNavigate(item.screen)}

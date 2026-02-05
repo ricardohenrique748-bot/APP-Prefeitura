@@ -72,7 +72,10 @@ const DEFAULT_COST_CENTERS: CostCenter[] = [
 ];
 
 const App: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('smart_tech_user');
+    return saved ? JSON.parse(saved) : null;
+  });
   const isAuthenticated = !!currentUser;
   const [currentScreen, setCurrentScreen] = useState<AppScreen>(AppScreen.DASHBOARD);
 
@@ -85,7 +88,7 @@ const App: React.FC = () => {
     return saved ? saved === 'dark' : false;
   });
 
-  const [costCenters, setCostCenters] = useState<CostCenter[]>(DEFAULT_COST_CENTERS);
+  const [costCenters, setCostCenters] = useState<CostCenter[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [orders, setOrders] = useState<OSDetail[]>([]);
   const [fuelEntries, setFuelEntries] = useState<FuelEntryData[]>([]);
@@ -246,6 +249,13 @@ const App: React.FC = () => {
   useEffect(() => { localStorage.setItem('smart_tech_orders', JSON.stringify(orders)); }, [orders]);
   useEffect(() => { localStorage.setItem('smart_tech_fuel_entries', JSON.stringify(fuelEntries)); }, [fuelEntries]);
   useEffect(() => { localStorage.setItem('smart_tech_active_shifts', JSON.stringify(activeShifts)); }, [activeShifts]);
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('smart_tech_user', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('smart_tech_user');
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     if (isDarkMode) { document.documentElement.classList.add('dark'); localStorage.setItem('smart_tech_theme', 'dark'); }
@@ -313,13 +323,50 @@ const App: React.FC = () => {
     setShifts(prev => prev.filter(s => s.id !== id));
   };
 
+  // Filtragem de Dados por Perfil
+  const { filteredOrders, filteredVehicles, filteredFuel, filteredShifts } = useMemo(() => {
+    if (!currentUser || currentUser.role === 'ADMIN') {
+      return {
+        filteredOrders: orders,
+        filteredVehicles: vehicles,
+        filteredFuel: fuelEntries,
+        filteredShifts: shifts
+      };
+    }
+
+    const userCCId = currentUser.costCenter ? currentUser.costCenter.split(' ')[0] : '';
+
+    // Se não tiver centro de custo vinculado, mostra vazio ou tudo? 
+    // Regra: "O gestor vai ter acesso ao seu centro de custo" -> Se n tiver CC, não vê nada de dados operacionais
+    if (!userCCId) {
+      return {
+        filteredOrders: [],
+        filteredVehicles: [],
+        filteredFuel: [],
+        filteredShifts: []
+      };
+    }
+
+    return {
+      filteredOrders: orders.filter(o => o.costCenter.startsWith(userCCId)),
+      filteredVehicles: vehicles.filter(v => v.costCenter?.startsWith(userCCId)),
+      filteredFuel: fuelEntries.filter(f => f.costCenter.startsWith(userCCId)),
+      filteredShifts: shifts // Shifts usually linked to vehicle, detailed filter below if needed
+        .filter(s => {
+          const vehicle = vehicles.find(v => v.id === s.vehicle_id);
+          return vehicle?.costCenter?.startsWith(userCCId);
+        })
+    };
+  }, [currentUser, orders, vehicles, fuelEntries, shifts]);
+
+
   const renderScreen = () => {
     switch (currentScreen) {
       case AppScreen.DASHBOARD:
-        return <Dashboard orders={orders} vehicles={vehicles} fuelEntries={fuelEntries} onAction={(screen) => setCurrentScreen(screen)} />;
+        return <Dashboard orders={filteredOrders} vehicles={filteredVehicles} fuelEntries={filteredFuel} onAction={(screen) => setCurrentScreen(screen)} />;
       case AppScreen.SHIFT_START:
         return <ShiftStart
-          vehicles={vehicles}
+          vehicles={filteredVehicles}
           onUpdateKm={updateVehicleKm}
           onBack={() => setCurrentScreen(AppScreen.DASHBOARD)}
           activeShifts={activeShifts}
@@ -329,33 +376,35 @@ const App: React.FC = () => {
       case AppScreen.SHIFT_END:
         return <ShiftEnd onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} />;
       case AppScreen.OS_CONTROL:
-        return <OSControl orders={orders} setOrders={setOrders} onAction={(screen) => setCurrentScreen(screen)} />;
+        return <OSControl orders={filteredOrders} setOrders={setOrders} onAction={(screen) => setCurrentScreen(screen)} />;
       case AppScreen.OS_CREATE:
-        return <OSCreate vehicles={vehicles} setOrders={setOrders} onBack={() => setCurrentScreen(AppScreen.OS_CONTROL)} />;
+        return <OSCreate vehicles={filteredVehicles} setOrders={setOrders} onBack={() => setCurrentScreen(AppScreen.OS_CONTROL)} />;
       case AppScreen.FUEL_CONTROL:
-        return <FuelControl fuelEntries={fuelEntries} onAction={(screen) => setCurrentScreen(screen)} />;
+        return <FuelControl fuelEntries={filteredFuel} onAction={(screen) => setCurrentScreen(screen)} />;
       case AppScreen.FUEL_ENTRY:
-        return <FuelEntry vehicles={vehicles} suppliers={suppliers} onSave={handleAddFuelEntry} onBack={() => setCurrentScreen(AppScreen.FUEL_CONTROL)} />;
+        return <FuelEntry vehicles={filteredVehicles} suppliers={suppliers} onSave={handleAddFuelEntry} onBack={() => setCurrentScreen(AppScreen.FUEL_CONTROL)} />;
       case AppScreen.COST_CENTERS:
         return <CostCenters centers={centersWithStats} setCenters={setCostCenters} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.FLEET_MANAGEMENT:
-        return <FleetManagement vehicles={vehicles} setVehicles={setVehicles} costCenters={costCenters} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
+        return <FleetManagement vehicles={filteredVehicles} setVehicles={setVehicles} costCenters={costCenters} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.REPORTS:
-        return <Reports vehicles={vehicles} orders={orders} fuelEntries={fuelEntries} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
+        return <Reports vehicles={filteredVehicles} orders={filteredOrders} fuelEntries={filteredFuel} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.TIRE_BULLETIN:
-        return <TireBulletin vehicles={vehicles} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
+        return <TireBulletin vehicles={filteredVehicles} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.USER_MANAGEMENT:
+        // Gestor pode ver usuários, mas idealmente filtraria tb. O pedido diz "ver só info lançada para seu centro de custo", usarios são dados do sistema. Vamos manter full por enquanto ou filtrar?
+        // "O gestor vai ter acesso ao seu centro de custo"
         return <UserManagement currentUserRole={currentUser?.role || 'OPERADOR'} costCenters={costCenters} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.SUPPLIER_MANAGEMENT:
         return <SupplierManagement onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.BACKLOG:
-        return <Backlog shifts={shifts} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} />;
+        return <Backlog shifts={filteredShifts} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} />;
       case AppScreen.SUPPLIER_QUOTE:
         return <SupplierQuote onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} />;
       case AppScreen.CHECKLIST_HISTORY:
         return <ChecklistHistory
-          shifts={shifts}
-          vehicles={vehicles}
+          shifts={filteredShifts}
+          vehicles={filteredVehicles}
           onBack={() => setCurrentScreen(AppScreen.SETTINGS)}
           onEdit={handleUpdateShift}
           onDelete={handleDeleteShift}
@@ -367,11 +416,11 @@ const App: React.FC = () => {
           onAction={(screen) => setCurrentScreen(screen)}
           avatarUrl={userAvatar}
           onAvatarChange={(nav) => setUserAvatar(nav)}
-          onLogout={() => { setCurrentUser(null); setCurrentScreen(AppScreen.DASHBOARD); }}
+          onLogout={() => { setCurrentUser(null); setCurrentScreen(AppScreen.DASHBOARD); localStorage.removeItem('smart_tech_user'); }}
           userRole={currentUser?.role || 'OPERADOR'}
         />;
       default:
-        return <Dashboard orders={orders} vehicles={vehicles} fuelEntries={fuelEntries} onAction={(screen) => setCurrentScreen(screen)} />;
+        return <Dashboard orders={filteredOrders} vehicles={filteredVehicles} fuelEntries={filteredFuel} onAction={(screen) => setCurrentScreen(screen)} />;
     }
   };
 

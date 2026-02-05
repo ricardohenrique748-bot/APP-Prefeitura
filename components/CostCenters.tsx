@@ -1,6 +1,6 @@
-
 import React, { useState, useMemo } from 'react';
 import { CostCenter } from '../App';
+import { supabase } from '../services/supabase';
 
 interface CostCentersProps {
   onBack: () => void;
@@ -12,6 +12,7 @@ const CostCenters: React.FC<CostCentersProps> = ({ onBack, centers, setCenters }
   const [editingCenter, setEditingCenter] = useState<CostCenter | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -23,7 +24,7 @@ const CostCenters: React.FC<CostCentersProps> = ({ onBack, centers, setCenters }
   const totals = useMemo(() => {
     const budgetTotal = centers.reduce((sum, c) => sum + c.budget, 0);
     const consumedTotal = centers.reduce((sum, c) => sum + c.consumedValue, 0);
-    
+
     const formatValue = (val: number) => {
       if (val >= 1000000) return `R$ ${(val / 1000000).toFixed(1)}M`;
       if (val >= 1000) return `R$ ${(val / 1000).toFixed(0)}k`;
@@ -43,43 +44,76 @@ const CostCenters: React.FC<CostCentersProps> = ({ onBack, centers, setCenters }
 
   const openEditModal = (center: CostCenter) => {
     setEditingCenter(center);
-    setFormData({ 
-      name: center.name, 
-      company: center.company, 
+    setFormData({
+      name: center.name,
+      company: center.company,
       budget: center.budget.toString()
     });
   };
 
-  const handleDelete = (id: string) => {
-    setCenters(prev => prev.filter(c => c.id !== id));
-    setShowDeleteConfirm(null);
+  const handleDelete = async (id: string) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.from('cost_centers').delete().eq('id', id);
+      if (error) throw error;
+      setCenters(prev => prev.filter(c => c.id !== id));
+      setShowDeleteConfirm(null);
+    } catch (error) {
+      console.error("Erro ao excluir:", error);
+      alert("Erro ao excluir centro de custo.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     const budgetVal = parseFloat(formData.budget) || 0;
-    
-    if (isAdding) {
-      const newId = centers.length > 0 
-        ? (Math.max(...centers.map(c => parseInt(c.id))) + 1).toString() 
-        : "101";
-        
-      const newCenter: CostCenter = {
-        id: newId,
-        name: formData.name,
-        company: formData.company,
-        budget: budgetVal,
-        color: 'bg-primary'
-      };
-      setCenters(prev => [newCenter, ...prev]);
-    } else if (editingCenter) {
-      setCenters(prev => prev.map(c => 
-        c.id === editingCenter.id 
-          ? { ...c, name: formData.name, company: formData.company, budget: budgetVal } 
-          : c
-      ));
+
+    try {
+      if (isAdding) {
+        const { data, error } = await supabase.from('cost_centers').insert([{
+          name: formData.name,
+          company: formData.company,
+          budget: budgetVal,
+          color: 'bg-primary'
+        }]).select();
+
+        if (error) throw error;
+
+        if (data) {
+          const newCenter: CostCenter = {
+            id: data[0].id.toString(),
+            name: data[0].name,
+            company: data[0].company,
+            budget: data[0].budget,
+            color: data[0].color
+          };
+          setCenters(prev => [newCenter, ...prev]);
+        }
+      } else if (editingCenter) {
+        const { error } = await supabase.from('cost_centers').update({
+          name: formData.name,
+          company: formData.company,
+          budget: budgetVal
+        }).eq('id', editingCenter.id);
+
+        if (error) throw error;
+
+        setCenters(prev => prev.map(c =>
+          c.id === editingCenter.id
+            ? { ...c, name: formData.name, company: formData.company, budget: budgetVal }
+            : c
+        ));
+      }
+      closeModals();
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      alert("Erro ao salvar centro de custo.");
+    } finally {
+      setLoading(false);
     }
-    closeModals();
   };
 
   const closeModals = () => {
@@ -168,19 +202,19 @@ const CostCenters: React.FC<CostCentersProps> = ({ onBack, centers, setCenters }
             <form onSubmit={handleSave} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Nome do Centro</label>
-                <input type="text" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary" />
+                <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary" />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Empresa</label>
-                <input type="text" required value={formData.company} onChange={(e) => setFormData({...formData, company: e.target.value})} className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm outline-none focus:ring-2 focus:ring-primary" />
+                <input type="text" required value={formData.company} onChange={(e) => setFormData({ ...formData, company: e.target.value })} className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm outline-none focus:ring-2 focus:ring-primary" />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Orçamento (R$)</label>
-                <input type="number" required value={formData.budget} onChange={(e) => setFormData({...formData, budget: e.target.value})} className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-mono outline-none focus:ring-2 focus:ring-primary" />
+                <input type="number" required value={formData.budget} onChange={(e) => setFormData({ ...formData, budget: e.target.value })} className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-mono outline-none focus:ring-2 focus:ring-primary" />
               </div>
               <div className="pt-4 flex gap-3">
                 <button type="button" onClick={closeModals} className="flex-1 h-14 bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold rounded-2xl uppercase text-[10px] tracking-widest">CANCELAR</button>
-                <button type="submit" className="flex-1 h-14 bg-primary text-white font-black rounded-2xl shadow-lg shadow-primary/30 uppercase text-[10px] tracking-widest">{isAdding ? 'CADASTRAR' : 'SALVAR'}</button>
+                <button type="submit" disabled={loading} className="flex-1 h-14 bg-primary text-white font-black rounded-2xl shadow-lg shadow-primary/30 uppercase text-[10px] tracking-widest disabled:opacity-50">{loading ? 'SALVANDO...' : (isAdding ? 'CADASTRAR' : 'SALVAR')}</button>
               </div>
             </form>
           </div>
@@ -198,7 +232,7 @@ const CostCenters: React.FC<CostCentersProps> = ({ onBack, centers, setCenters }
               <p className="text-xs text-slate-500 font-medium">Esta ação não pode ser desfeita e removerá todos os vínculos operacionais.</p>
             </div>
             <div className="flex flex-col gap-2">
-              <button onClick={() => handleDelete(showDeleteConfirm)} className="w-full h-14 bg-accent-error text-white font-black rounded-2xl uppercase tracking-widest">Sim, Excluir</button>
+              <button onClick={() => handleDelete(showDeleteConfirm)} disabled={loading} className="w-full h-14 bg-accent-error text-white font-black rounded-2xl uppercase tracking-widest disabled:opacity-50">{loading ? 'EXCLUINDO...' : 'Sim, Excluir'}</button>
               <button onClick={() => setShowDeleteConfirm(null)} className="w-full h-12 text-slate-400 font-bold uppercase text-[10px]">Voltar</button>
             </div>
           </div>
