@@ -382,7 +382,13 @@ const App: React.FC = () => {
       case AppScreen.FUEL_CONTROL:
         return <FuelControl fuelEntries={filteredFuel} onAction={(screen) => setCurrentScreen(screen)} />;
       case AppScreen.FUEL_ENTRY:
-        return <FuelEntry vehicles={filteredVehicles} suppliers={suppliers} onSave={handleAddFuelEntry} onBack={() => setCurrentScreen(AppScreen.FUEL_CONTROL)} />;
+        return <FuelEntry
+          vehicles={filteredVehicles}
+          suppliers={suppliers}
+          onSave={handleAddFuelEntry}
+          onBack={() => setCurrentScreen(AppScreen.FUEL_CONTROL)}
+          userCostCenter={currentUser?.role !== 'ADMIN' ? currentUser?.costCenter : undefined}
+        />;
       case AppScreen.COST_CENTERS:
         return <CostCenters centers={centersWithStats} setCenters={setCostCenters} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.FLEET_MANAGEMENT:

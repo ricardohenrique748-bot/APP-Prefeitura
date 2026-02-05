@@ -8,22 +8,24 @@ interface FuelEntryProps {
   onSave: (entry: FuelEntryData) => void;
   vehicles: Vehicle[];
   suppliers: Supplier[];
+  userCostCenter?: string;
 }
 
-const FuelEntry: React.FC<FuelEntryProps> = ({ onBack, onSave, vehicles, suppliers }) => {
+const FuelEntry: React.FC<FuelEntryProps> = ({ onBack, onSave, vehicles, suppliers, userCostCenter }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [invoicePreview, setInvoicePreview] = useState<string | null>(null);
 
   const activeVehicles = vehicles.filter(v => v.status === 'ACTIVE');
-  const gasStations = suppliers.filter(s => s.category === 'COMBUSTÍVEL');
+  // Ensure suppliers array is valid and filter for gas stations
+  const gasStations = (suppliers || []).filter(s => s && (s.category === 'COMBUSTÍVEL' || s.category === 'Posto'));
 
   const [formData, setFormData] = useState({
     driver: 'RICARDO LUZ',
     date: new Date().toISOString().slice(0, 16),
     plate: activeVehicles.length > 0 ? activeVehicles[0].plate : '',
-    costCenter: activeVehicles.length > 0 ? (activeVehicles[0].costCenter || '101 - Colheita') : '101 - Colheita',
+    costCenter: userCostCenter || (activeVehicles.length > 0 ? (activeVehicles[0].costCenter || '101 - Colheita') : '101 - Colheita'),
     item: 'Diesel S10',
     quantity: '',
     unitPrice: '',
@@ -35,7 +37,8 @@ const FuelEntry: React.FC<FuelEntryProps> = ({ onBack, onSave, vehicles, supplie
     setFormData({
       ...formData,
       plate,
-      costCenter: vehicle?.costCenter || formData.costCenter
+      // Se o usuário tem um CC fixo, mantém ele. Se não, pega o do veículo.
+      costCenter: userCostCenter || (vehicle?.costCenter || formData.costCenter)
     });
   };
 
