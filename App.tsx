@@ -64,12 +64,7 @@ export interface CostCenter {
   color: string;
 }
 
-const DEFAULT_COST_CENTERS: CostCenter[] = [
-  { id: '101', name: 'Colheita', company: 'AgroLog S.A.', budget: 50000, color: 'bg-primary' },
-  { id: '102', name: 'Transp. Interno', company: 'AgroLog S.A.', budget: 50000, color: 'bg-accent-error' },
-  { id: '201', name: 'Manutenção', company: 'Logística Centro-Oeste', budget: 10000, color: 'bg-primary' },
-  { id: '304', name: 'Combustível', company: 'Expresso Rápido Ltda.', budget: 30000, color: 'bg-primary' },
-];
+// DEFAULT_COST_CENTERS removed to force Supabase usage
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
@@ -105,117 +100,115 @@ const App: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Buscar Veículos
-        const { data: vData } = await supabase.from('vehicles').select('*');
-        if (vData && vData.length > 0) {
-          const mappedVehicles = vData.map((v: any) => ({
-            id: v.id,
-            plate: v.plate,
-            model: v.model,
-            type: v.type,
-            status: v.status,
-            km: v.km,
-            lastPreventiveKm: v.last_preventive_km,
-            costCenter: v.cost_center,
-            year: '2023'
-          }));
-          setVehicles(mappedVehicles);
-        }
-
-        // Buscar Centros de Custo (NOVO)
-        const { data: ccData } = await supabase.from('cost_centers').select('*');
-        if (ccData && ccData.length > 0) {
-          const mappedCenters = ccData.map((c: any) => ({
-            id: c.id.toString(),
-            name: c.name,
-            company: c.company,
-            budget: Number(c.budget),
-            color: c.color || 'bg-primary'
-          }));
-          setCostCenters(mappedCenters);
-        } else {
-          // Se não vier nada do banco (primeira vez), usar defaults e talvez salvar lá?
-          // Por enquanto mantemos o default local APENAS se o banco falhar/estiver vazio
-          // setCostCenters(DEFAULT_COST_CENTERS); 
-          // COMENTADO: Melhor respeitar o banco vazio se a conexão funcionar
-        }
-
-        // Buscar OS
-        const { data: oData } = await supabase.from('service_orders').select('*');
-        if (oData) {
-          const mappedOrders = oData.map((o: any) => ({
-            id: o.id,
-            plate: o.plate,
-            task: o.description || 'Manutenção Diversa',
-            taskType: o.type,
-            status: o.status,
-            priority: o.priority,
-            time: new Date(o.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-            mechanic: o.mechanic || 'Interno',
-            description: o.description || '',
-            costCenter: o.cost_center || 'Geral',
-            openedAt: o.opened_at,
-            isPaid: o.is_paid,
-            costValue: Number(o.cost) || 0,
-            invoiceUrl: o.invoice_url,
-            quoteUrl: o.quote_url
-          }));
-          setOrders(mappedOrders);
-        }
-
-        // Buscar Combustível
-        const { data: fData } = await supabase.from('fuel_entries').select('*');
-        if (fData) {
-          const mappedFuel = fData.map((f: any) => ({
-            id: f.id,
-            plate: f.plate,
-            driver: f.driver || 'Motorista',
-            date: f.date,
-            costCenter: '304 - Combustível',
-            item: f.fuel_type || 'Diesel',
-            quantity: Number(f.quantity),
-            unitPrice: Number(f.total_value) / Number(f.quantity),
-            totalValue: Number(f.total_value),
-            invoiceUrl: ''
-          }));
-          setFuelEntries(mappedFuel);
-        }
-
-        // Buscar Turnos (Shifts)
-        const { data: sData } = await supabase.from('shifts').select('*');
-        if (sData) {
-          const mappedShifts = sData.map((s: any) => ({
-            id: s.id,
-            vehicle_id: s.vehicle_id,
-            driverName: s.driver_name,
-            startTime: s.start_time,
-            endTime: s.end_time,
-            startKm: s.start_km,
-            endKm: s.end_km,
-            checklistData: s.checklist_data,
-            damageReport: s.damage_report,
-            signatureUrl: s.signature_url,
-            status: s.status
-          }));
-          setShifts(mappedShifts);
-        }
-
-        // Buscar Fornecedores
-        const { data: supData } = await supabase.from('suppliers').select('*');
-        if (supData) {
-          setSuppliers(supData as Supplier[]);
-        }
-
-      } catch (error) {
-        console.error("Erro ao buscar dados do Supabase:", error);
+  const startSync = async () => {
+    try {
+      // Buscar Veículos
+      const { data: vData } = await supabase.from('vehicles').select('*');
+      if (vData && vData.length > 0) {
+        const mappedVehicles = vData.map((v: any) => ({
+          id: v.id,
+          plate: v.plate,
+          model: v.model,
+          type: v.type,
+          status: v.status,
+          km: v.km,
+          lastPreventiveKm: v.last_preventive_km,
+          costCenter: v.cost_center,
+          year: '2023'
+        }));
+        setVehicles(mappedVehicles);
       }
-    };
 
+      // Buscar Centros de Custo (NOVO)
+      const { data: ccData } = await supabase.from('cost_centers').select('*');
+      if (ccData && ccData.length > 0) {
+        const mappedCenters = ccData.map((c: any) => ({
+          id: c.id.toString(),
+          name: c.name,
+          company: c.company,
+          budget: Number(c.budget),
+          color: c.color || 'bg-primary'
+        }));
+        setCostCenters(mappedCenters);
+      } else {
+        // Se não vier nada do banco (primeira vez), manter vazio
+      }
+
+      // Buscar OS
+      const { data: oData } = await supabase.from('service_orders').select('*');
+      if (oData) {
+        const mappedOrders = oData.map((o: any) => ({
+          id: o.id,
+          plate: o.plate,
+          task: o.description || 'Manutenção Diversa',
+          taskType: o.type,
+          status: o.status,
+          priority: o.priority,
+          time: new Date(o.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+          mechanic: o.mechanic || 'Interno',
+          description: o.description || '',
+          costCenter: o.cost_center || 'Geral',
+          openedAt: o.opened_at,
+          isPaid: o.is_paid,
+          costValue: Number(o.cost) || 0,
+          invoiceUrl: o.invoice_url,
+          quoteUrl: o.quote_url
+        }));
+        setOrders(mappedOrders);
+      }
+
+      // Buscar Combustível
+      const { data: fData } = await supabase.from('fuel_entries').select('*');
+      if (fData) {
+        const mappedFuel = fData.map((f: any) => ({
+          id: f.id,
+          plate: f.plate,
+          driver: f.driver || 'Motorista',
+          date: f.date,
+          costCenter: '304 - Combustível',
+          item: f.fuel_type || 'Diesel',
+          quantity: Number(f.quantity),
+          unitPrice: Number(f.total_value) / Number(f.quantity),
+          totalValue: Number(f.total_value),
+          invoiceUrl: ''
+        }));
+        setFuelEntries(mappedFuel);
+      }
+
+      // Buscar Turnos (Shifts)
+      const { data: sData } = await supabase.from('shifts').select('*');
+      if (sData) {
+        const mappedShifts = sData.map((s: any) => ({
+          id: s.id,
+          vehicle_id: s.vehicle_id,
+          driverName: s.driver_name,
+          startTime: s.start_time,
+          endTime: s.end_time,
+          startKm: s.start_km,
+          endKm: s.end_km,
+          checklistData: s.checklist_data,
+          damageReport: s.damage_report,
+          signatureUrl: s.signature_url,
+          status: s.status
+        }));
+        setShifts(mappedShifts);
+      }
+
+      // Buscar Fornecedores
+      const { data: supData } = await supabase.from('suppliers').select('*');
+      if (supData) {
+        setSuppliers(supData as Supplier[]);
+      }
+
+    } catch (error) {
+      console.error("Erro ao buscar dados do Supabase:", error);
+      alert('Erro ao sincronizar dados. Verifique sua conexão.');
+    }
+  };
+
+  useEffect(() => {
     if (isAuthenticated) {
-      fetchData();
+      startSync();
     }
   }, [isAuthenticated]);
 
@@ -457,6 +450,7 @@ const App: React.FC = () => {
           onAvatarChange={(nav) => setUserAvatar(nav)}
           onLogout={() => { setCurrentUser(null); setCurrentScreen(AppScreen.DASHBOARD); localStorage.removeItem('smart_tech_user'); }}
           userRole={currentUser?.role || 'OPERADOR'}
+          onSync={startSync}
         />;
       default:
         return <Dashboard orders={filteredOrders} vehicles={filteredVehicles} fuelEntries={filteredFuel} onAction={(screen) => setCurrentScreen(screen)} />;

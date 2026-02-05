@@ -10,9 +10,10 @@ interface SettingsProps {
   avatarUrl: string;
   onAvatarChange: (newAvatar: string) => void;
   userRole: string;
+  onSync: () => void;
 }
 
-const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onToggleTheme, avatarUrl, onAvatarChange, userRole }) => {
+const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onToggleTheme, avatarUrl, onAvatarChange, userRole, onSync }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const allMenuItems = [
@@ -113,7 +114,13 @@ const Settings: React.FC<SettingsProps> = ({ onAction, onLogout, isDarkMode, onT
           {menuItems.map((item, idx) => (
             <button
               key={idx}
-              onClick={() => item.screen && onAction(item.screen)}
+              onClick={() => {
+                if (item.label === 'Sincronização Manual') {
+                  onSync();
+                } else if (item.screen) {
+                  onAction(item.screen);
+                }
+              }}
               className="w-full flex items-center justify-between p-3 md:p-6 md:bg-white md:dark:bg-card-dark md:rounded-2xl md:border md:border-slate-200 md:dark:border-slate-800 md:shadow-sm active:bg-slate-50 dark:active:bg-slate-800/50 transition-all hover:shadow-md hover:-translate-y-1"
             >
               <div className="flex items-center gap-3 md:gap-4">
