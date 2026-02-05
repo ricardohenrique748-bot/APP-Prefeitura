@@ -7,9 +7,10 @@ interface UserManagementProps {
   onBack: () => void;
   currentUserRole: 'ADMIN' | 'GESTOR' | 'OPERADOR' | 'MOTORISTA';
   costCenters: CostCenter[];
+  isAdmin?: boolean;
 }
 
-const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole, costCenters }) => {
+const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole, costCenters, isAdmin = false }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -157,12 +158,14 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
               className="w-full h-12 pl-10 pr-4 bg-slate-50 dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none"
             />
           </div>
-          <button
-            onClick={openAddModal}
-            className="h-12 w-12 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95"
-          >
-            <span className="material-symbols-outlined">person_add</span>
-          </button>
+          {isAdmin && (
+            <button
+              onClick={openAddModal}
+              className="h-12 w-12 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95"
+            >
+              <span className="material-symbols-outlined">person_add</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -202,7 +205,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      {(currentUserRole === 'ADMIN' || (currentUserRole === 'GESTOR' && user.role !== 'ADMIN' && user.role !== 'GESTOR')) && (
+                      {isAdmin && (
                         <>
                           <button
                             onClick={() => openEditModal(user)}

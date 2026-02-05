@@ -10,9 +10,10 @@ interface FleetManagementProps {
   vehicles: Vehicle[];
   setVehicles: React.Dispatch<React.SetStateAction<Vehicle[]>>;
   costCenters: CostCenter[];
+  isAdmin?: boolean;
 }
 
-const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, vehicles, setVehicles, costCenters }) => {
+const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, vehicles, setVehicles, costCenters, isAdmin = false }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -194,12 +195,14 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
               className="w-full h-12 pl-10 pr-4 bg-slate-50 dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none"
             />
           </div>
-          <button
-            onClick={openAddModal}
-            className="h-12 w-12 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95"
-          >
-            <span className="material-symbols-outlined">add</span>
-          </button>
+          {isAdmin && (
+            <button
+              onClick={openAddModal}
+              className="h-12 w-12 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95"
+            >
+              <span className="material-symbols-outlined">add</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -227,14 +230,16 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
                     )}
                   </div>
                 </div>
-                <div className="flex gap-1">
-                  <button onClick={() => openEditModal(vehicle)} className="size-9 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-primary active:scale-90 transition-all">
-                    <span className="material-symbols-outlined text-xl">edit</span>
-                  </button>
-                  <button onClick={() => setShowDeleteConfirm(vehicle.id)} className="size-9 rounded-lg flex items-center justify-center bg-accent-error/10 text-accent-error active:scale-90 transition-all">
-                    <span className="material-symbols-outlined text-xl">delete</span>
-                  </button>
-                </div>
+                {isAdmin && (
+                  <div className="flex gap-1">
+                    <button onClick={() => openEditModal(vehicle)} className="size-9 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-primary active:scale-90 transition-all">
+                      <span className="material-symbols-outlined text-xl">edit</span>
+                    </button>
+                    <button onClick={() => setShowDeleteConfirm(vehicle.id)} className="size-9 rounded-lg flex items-center justify-center bg-accent-error/10 text-accent-error active:scale-90 transition-all">
+                      <span className="material-symbols-outlined text-xl">delete</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-2">

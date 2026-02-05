@@ -17,9 +17,10 @@ interface TireRegistration {
 interface TireBulletinProps {
   onBack: () => void;
   vehicles: Vehicle[];
+  isAdmin?: boolean;
 }
 
-const TireBulletin: React.FC<TireBulletinProps> = ({ onBack, vehicles }) => {
+const TireBulletin: React.FC<TireBulletinProps> = ({ onBack, vehicles, isAdmin = false }) => {
   const [selectedPlate, setSelectedPlate] = useState(vehicles[0]?.plate || '');
   const [isAdding, setIsAdding] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -147,16 +148,18 @@ const TireBulletin: React.FC<TireBulletinProps> = ({ onBack, vehicles }) => {
             <p className="text-slate-500 text-sm">Smart Tech • Gestão de Frotas</p>
           </div>
         </div>
-        <button
-          onClick={() => {
-            const v = vehicles.find(v => v.plate === selectedPlate);
-            setFormData(prev => ({ ...prev, plate: selectedPlate, km: v?.km.toString() || '' }));
-            setIsAdding(true);
-          }}
-          className="bg-primary text-white size-12 rounded-xl shadow-lg shadow-primary/30 flex items-center justify-center active:scale-90 transition-transform"
-        >
-          <span className="material-symbols-outlined">add_task</span>
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => {
+              const v = vehicles.find(v => v.plate === selectedPlate);
+              setFormData(prev => ({ ...prev, plate: selectedPlate, km: v?.km.toString() || '' }));
+              setIsAdding(true);
+            }}
+            className="bg-primary text-white size-12 rounded-xl shadow-lg shadow-primary/30 flex items-center justify-center active:scale-90 transition-transform"
+          >
+            <span className="material-symbols-outlined">add_task</span>
+          </button>
+        )}
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 no-scrollbar">

@@ -8,9 +8,10 @@ interface ChecklistHistoryProps {
     onBack: () => void;
     onEdit: (shift: Shift) => void;
     onDelete: (id: string) => void;
+    isAdmin?: boolean;
 }
 
-const ChecklistHistory: React.FC<ChecklistHistoryProps> = ({ shifts, vehicles, onBack, onEdit, onDelete }) => {
+const ChecklistHistory: React.FC<ChecklistHistoryProps> = ({ shifts, vehicles, onBack, onEdit, onDelete, isAdmin = false }) => {
     const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState<Partial<Shift>>({});
@@ -59,12 +60,16 @@ const ChecklistHistory: React.FC<ChecklistHistoryProps> = ({ shifts, vehicles, o
                         VOLTAR
                     </button>
                     <div className="flex items-center gap-2">
-                        <button onClick={() => handleEditClick(selectedShift)} className="size-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-500 active:scale-95 transition-all">
-                            <span className="material-symbols-outlined text-lg">edit</span>
-                        </button>
-                        <button onClick={handleDelete} className="size-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 active:scale-95 transition-all">
-                            <span className="material-symbols-outlined text-lg">delete</span>
-                        </button>
+                        {isAdmin && (
+                            <>
+                                <button onClick={() => handleEditClick(selectedShift)} className="size-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-500 active:scale-95 transition-all">
+                                    <span className="material-symbols-outlined text-lg">edit</span>
+                                </button>
+                                <button onClick={handleDelete} className="size-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 active:scale-95 transition-all">
+                                    <span className="material-symbols-outlined text-lg">delete</span>
+                                </button>
+                            </>
+                        )}
                     </div>
                 </header>
 

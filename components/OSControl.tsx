@@ -8,9 +8,10 @@ interface OSControlProps {
   onAction: (screen: AppScreen) => void;
   orders: OSDetail[];
   setOrders: React.Dispatch<React.SetStateAction<OSDetail[]>>;
+  isAdmin?: boolean;
 }
 
-const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders }) => {
+const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders, isAdmin = false }) => {
   const [activeFilter, setActiveFilter] = useState('Todas');
   const [selectedOSId, setSelectedOSId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -438,7 +439,7 @@ const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders }) =>
                       {selectedOS.status === 'Finalizada' ? 'ORDEM FINALIZADA' : 'FINALIZAR MANUTENÇÃO'}
                     </button>
 
-                    {!isEditing && (
+                    {isAdmin && !isEditing && (
                       <button onClick={() => setShowDeleteConfirm(true)} className="w-full h-10 text-accent-error text-[9px] font-black uppercase tracking-[0.2em] border border-accent-error/20 rounded-lg hover:bg-accent-error/5 transition-colors">
                         Excluir Ordem de Serviço
                       </button>
@@ -447,64 +448,68 @@ const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders }) =>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Received Quotes Section */}
-            {receivedQuotes.length > 0 && (
-              <section className="space-y-3 pt-6 border-t border-slate-100 dark:border-slate-800">
-                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Orçamentos Recebidos ({receivedQuotes.length})</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {receivedQuotes.map((quote) => (
-                    <div key={quote.id} className="bg-white dark:bg-background-dark border border-slate-100 dark:border-slate-800 p-4 rounded-2xl flex justify-between items-center shadow-sm">
-                      <div>
-                        <p className="text-xs font-black uppercase text-slate-900 dark:text-white">{quote.supplier_name}</p>
-                        <p className="text-[9px] font-bold text-slate-500 tracking-wider">Prazo: {quote.deadline_days} dias • {new Date(quote.created_at).toLocaleDateString()}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-black text-primary">R$ {parseFloat(quote.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                        <button
-                          onClick={() => setEditForm({ ...editForm, costValue: parseFloat(quote.value) })}
-                          className="text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors underline"
-                        >
-                          Aplicar
-                        </button>
-                      </div>
+          {/* Received Quotes Section */}
+          {receivedQuotes.length > 0 && (
+            <section className="space-y-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Orçamentos Recebidos ({receivedQuotes.length})</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {receivedQuotes.map((quote) => (
+                  <div key={quote.id} className="bg-white dark:bg-background-dark border border-slate-100 dark:border-slate-800 p-4 rounded-2xl flex justify-between items-center shadow-sm">
+                    <div>
+                      <p className="text-xs font-black uppercase text-slate-900 dark:text-white">{quote.supplier_name}</p>
+                      <p className="text-[9px] font-bold text-slate-500 tracking-wider">Prazo: {quote.deadline_days} dias • {new Date(quote.created_at).toLocaleDateString()}</p>
                     </div>
-                  ))}
-                </div>
-              </section>
-            )}
-          </div>
+                    <div className="text-right">
+                      <p className="text-sm font-black text-primary">R$ {parseFloat(quote.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                      <button
+                        onClick={() => setEditForm({ ...editForm, costValue: parseFloat(quote.value) })}
+                        className="text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors underline"
+                      >
+                        Aplicar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
-      )}
-
-      {/* Delete Confirmation Overlay */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-8 animate-in fade-in duration-200" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="bg-white dark:bg-card-dark rounded-3xl p-6 w-full max-w-xs text-center space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="size-16 bg-accent-error/10 text-accent-error rounded-full flex items-center justify-center mx-auto mb-2 animate-pulse">
-              <span className="material-symbols-outlined text-3xl font-black">delete_forever</span>
-            </div>
-            <div>
-              <h3 className="text-base font-black uppercase italic mb-1 tracking-tighter">Apagar esta OS?</h3>
-              <p className="text-[10px] text-slate-500 font-medium">Esta ação é permanente e removerá todos os anexos vinculados.</p>
-            </div>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={confirmDelete}
-                className="w-full h-12 bg-accent-error text-white font-black rounded-xl uppercase tracking-widest shadow-lg shadow-accent-error/20 text-xs hover:bg-accent-error/90"
-              >
-                Sim, Excluir
-              </button>
-              <button onClick={() => setShowDeleteConfirm(false)} className="w-full h-10 text-slate-400 font-bold uppercase text-[9px] hover:text-slate-600">
-                Voltar
-              </button>
-            </div>
-          </div>
         </div>
-      )}
+  )
+}
 
-      <div className="h-24 md:hidden"></div>
+{/* Delete Confirmation Overlay */ }
+{
+  showDeleteConfirm && (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-8 animate-in fade-in duration-200" onClick={() => setShowDeleteConfirm(false)}>
+      <div className="bg-white dark:bg-card-dark rounded-3xl p-6 w-full max-w-xs text-center space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="size-16 bg-accent-error/10 text-accent-error rounded-full flex items-center justify-center mx-auto mb-2 animate-pulse">
+          <span className="material-symbols-outlined text-3xl font-black">delete_forever</span>
+        </div>
+        <div>
+          <h3 className="text-base font-black uppercase italic mb-1 tracking-tighter">Apagar esta OS?</h3>
+          <p className="text-[10px] text-slate-500 font-medium">Esta ação é permanente e removerá todos os anexos vinculados.</p>
+        </div>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={confirmDelete}
+            className="w-full h-12 bg-accent-error text-white font-black rounded-xl uppercase tracking-widest shadow-lg shadow-accent-error/20 text-xs hover:bg-accent-error/90"
+          >
+            Sim, Excluir
+          </button>
+          <button onClick={() => setShowDeleteConfirm(false)} className="w-full h-10 text-slate-400 font-bold uppercase text-[9px] hover:text-slate-600">
+            Voltar
+          </button>
+        </div>
+      </div>
     </div>
+  )
+}
+
+<div className="h-24 md:hidden"></div>
+    </div >
   );
 };
 

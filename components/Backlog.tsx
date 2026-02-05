@@ -6,9 +6,11 @@ interface BacklogProps {
   onBack: () => void;
   onAction: (screen: AppScreen) => void;
   shifts?: Shift[];
+  isAdmin?: boolean;
+  onResolve?: (id: string) => void;
 }
 
-const Backlog: React.FC<BacklogProps> = ({ onBack, onAction, shifts = [] }) => {
+const Backlog: React.FC<BacklogProps> = ({ onBack, onAction, shifts = [], isAdmin = false, onResolve }) => {
   // Combine hardcoded mock data with dynamic data from shifts that have damage reports
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -42,10 +44,14 @@ const Backlog: React.FC<BacklogProps> = ({ onBack, onAction, shifts = [] }) => {
     return [...mockItems, ...dynamicItems];
   }, [shifts]);
 
-  const filteredItems = backlogItems.filter(item =>
-    item.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [hiddenIds, setHiddenIds] = useState<string[]>([]);
+
+  const filteredItems = backlogItems
+    .filter(item => !hiddenIds.includes(item.id))
+    .filter(item =>
+      item.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   const getPriorityStyle = (priority: string) => {
     switch (priority) {
@@ -61,6 +67,15 @@ const Backlog: React.FC<BacklogProps> = ({ onBack, onAction, shifts = [] }) => {
     const shareText = `Solicitação de Orçamento: ${item.plate} - ${item.description}. Acesse e preencha o valor aqui: ${window.location.origin}?screen=SUPPLIER_QUOTE&id=${item.id}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
     window.open(whatsappUrl, '_blank');
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('Tem certeza que deseja remover este item do backlog?')) {
+      setHiddenIds(prev => [...prev, id]);
+      if (onResolve) {
+        onResolve(id);
+      }
+    }
   };
 
   return (
@@ -118,11 +133,24 @@ const Backlog: React.FC<BacklogProps> = ({ onBack, onAction, shifts = [] }) => {
                   >
                     <span className="material-symbols-outlined text-xl">share</span>
                   </button>
-                  <button
-                    className="size-10 rounded-xl flex items-center justify-center bg-slate-50 dark:bg-slate-800 text-slate-400 active:scale-90 transition-all hover:text-slate-600"
-                  >
-                    <span className="material-symbols-outlined text-xl">more_vert</span>
-                  </button>
+                  {isAdmin && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => alert(`Editar item ${item.plate} (Implementar)`)}
+                        className="size-10 rounded-xl flex items-center justify-center bg-slate-50 dark:bg-slate-800 text-slate-400 active:scale-90 transition-all hover:text-primary hover:bg-slate-100"
+                        title="Editar (Admin)"
+                      >
+                        <span className="material-symbols-outlined text-xl">edit</span>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="size-10 rounded-xl flex items-center justify-center bg-slate-50 dark:bg-slate-800 text-slate-400 active:scale-90 transition-all hover:text-accent-error hover:bg-red-50"
+                        title="Excluir (Admin)"
+                      >
+                        <span className="material-symbols-outlined text-xl">delete</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -164,23 +192,9 @@ const Backlog: React.FC<BacklogProps> = ({ onBack, onAction, shifts = [] }) => {
           </div>
         )}
       </div>
-
-      <div className="fixed bottom-28 left-0 right-0 px-4 pointer-events-none">
-        <div className="max-w-md mx-auto bg-slate-900/90 backdrop-blur-xl p-4 rounded-[2rem] flex items-center justify-between text-white shadow-2xl pointer-events-auto border border-white/10">
-          <div className="flex items-center gap-4">
-            <div className="size-10 bg-primary/20 rounded-full flex items-center justify-center">
-              <span className="material-symbols-outlined text-primary text-xl">insights</span>
-            </div>
-            <div>
-              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">KPI de Triagem</p>
-              <p className="text-sm font-black italic">4.2 horas <span className="text-[10px] font-bold text-accent-success">(+12%)</span></p>
-            </div>
-          </div>
-          <button className="text-[10px] font-black uppercase bg-primary px-5 py-2.5 rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all">Relatório</button>
-        </div>
-      </div>
     </div>
   );
 };
+
 
 export default Backlog;

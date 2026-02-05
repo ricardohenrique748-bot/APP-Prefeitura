@@ -360,6 +360,27 @@ const App: React.FC = () => {
   }, [currentUser, orders, vehicles, fuelEntries, shifts]);
 
 
+  const handleResolveBacklog = async (id: string) => {
+    // Optimistic update for mock items or checklist items
+    if (id.startsWith('m')) return; // Mock items handled by Backlog's local state for now
+
+    // For real shifts, try to clear the damage report logic
+    const shift = shifts.find(s => s.id === id);
+    if (shift) {
+      // Update local state to remove damage report immediately
+      setShifts(prev => prev.map(s => s.id === id ? { ...s, damageReport: undefined } : s));
+
+      // Update Supabase
+      try {
+        await supabase.from('shifts')
+          .update({ damage_report: null })
+          .eq('id', id);
+      } catch (err) {
+        console.error("Failed to resolve backlog item on backend", err);
+      }
+    }
+  };
+
   const renderScreen = () => {
     switch (currentScreen) {
       case AppScreen.DASHBOARD:
@@ -376,7 +397,7 @@ const App: React.FC = () => {
       case AppScreen.SHIFT_END:
         return <ShiftEnd onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} />;
       case AppScreen.OS_CONTROL:
-        return <OSControl orders={filteredOrders} setOrders={setOrders} onAction={(screen) => setCurrentScreen(screen)} />;
+        return <OSControl orders={filteredOrders} setOrders={setOrders} onAction={(screen) => setCurrentScreen(screen)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.OS_CREATE:
         return <OSCreate
           vehicles={filteredVehicles}
@@ -385,7 +406,7 @@ const App: React.FC = () => {
           userCostCenter={currentUser?.role !== 'ADMIN' ? currentUser?.costCenter : undefined}
         />;
       case AppScreen.FUEL_CONTROL:
-        return <FuelControl fuelEntries={filteredFuel} onAction={(screen) => setCurrentScreen(screen)} />;
+        return <FuelControl fuelEntries={filteredFuel} onAction={(screen) => setCurrentScreen(screen)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.FUEL_ENTRY:
         return <FuelEntry
           vehicles={filteredVehicles}
@@ -395,21 +416,27 @@ const App: React.FC = () => {
           userCostCenter={currentUser?.role !== 'ADMIN' ? currentUser?.costCenter : undefined}
         />;
       case AppScreen.COST_CENTERS:
-        return <CostCenters centers={centersWithStats} setCenters={setCostCenters} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
+        return <CostCenters centers={centersWithStats} setCenters={setCostCenters} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.FLEET_MANAGEMENT:
-        return <FleetManagement vehicles={filteredVehicles} setVehicles={setVehicles} costCenters={costCenters} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
+        return <FleetManagement vehicles={filteredVehicles} setVehicles={setVehicles} costCenters={costCenters} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.REPORTS:
         return <Reports vehicles={filteredVehicles} orders={filteredOrders} fuelEntries={filteredFuel} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.TIRE_BULLETIN:
-        return <TireBulletin vehicles={filteredVehicles} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
+        return <TireBulletin vehicles={filteredVehicles} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.USER_MANAGEMENT:
         // Gestor pode ver usuários, mas idealmente filtraria tb. O pedido diz "ver só info lançada para seu centro de custo", usarios são dados do sistema. Vamos manter full por enquanto ou filtrar?
         // "O gestor vai ter acesso ao seu centro de custo"
-        return <UserManagement currentUserRole={currentUser?.role || 'OPERADOR'} costCenters={costCenters} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
+        return <UserManagement currentUserRole={currentUser?.role || 'OPERADOR'} costCenters={costCenters} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.SUPPLIER_MANAGEMENT:
-        return <SupplierManagement onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
+        return <SupplierManagement onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.BACKLOG:
-        return <Backlog shifts={filteredShifts} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} />;
+        return <Backlog
+          shifts={filteredShifts}
+          onAction={(screen) => setCurrentScreen(screen)}
+          onBack={() => setCurrentScreen(AppScreen.DASHBOARD)}
+          isAdmin={currentUser?.role === 'ADMIN'}
+          onResolve={handleResolveBacklog}
+        />;
       case AppScreen.SUPPLIER_QUOTE:
         return <SupplierQuote onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} />;
       case AppScreen.CHECKLIST_HISTORY:
@@ -419,6 +446,7 @@ const App: React.FC = () => {
           onBack={() => setCurrentScreen(AppScreen.SETTINGS)}
           onEdit={handleUpdateShift}
           onDelete={handleDeleteShift}
+          isAdmin={currentUser?.role === 'ADMIN'}
         />;
       case AppScreen.SETTINGS:
         return <Settings

@@ -5,9 +5,10 @@ import { supabase } from '../services/supabase';
 
 interface SupplierManagementProps {
   onBack: () => void;
+  isAdmin?: boolean;
 }
 
-const SupplierManagement: React.FC<SupplierManagementProps> = ({ onBack }) => {
+const SupplierManagement: React.FC<SupplierManagementProps> = ({ onBack, isAdmin = false }) => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -115,15 +116,17 @@ const SupplierManagement: React.FC<SupplierManagementProps> = ({ onBack }) => {
               className="w-full h-12 pl-10 pr-4 bg-slate-50 dark:bg-card-dark border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none"
             />
           </div>
-          <button
-            onClick={() => {
-              setFormData({ name: '', document: '', category: 'PEÇAS', contact: '', email: '', status: 'ACTIVE' });
-              setIsAdding(true);
-            }}
-            className="h-12 w-12 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95"
-          >
-            <span className="material-symbols-outlined">add_business</span>
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => {
+                setFormData({ name: '', document: '', category: 'PEÇAS', contact: '', email: '', status: 'ACTIVE' });
+                setIsAdding(true);
+              }}
+              className="h-12 w-12 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95"
+            >
+              <span className="material-symbols-outlined">add_business</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -153,14 +156,16 @@ const SupplierManagement: React.FC<SupplierManagementProps> = ({ onBack }) => {
                         </span>
                       </div>
                     </div>
-                    <div className="flex gap-1">
-                      <button onClick={() => { setEditingSupplier(s); setFormData(s); }} className="size-9 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-primary active:scale-90 transition-all">
-                        <span className="material-symbols-outlined text-xl">edit</span>
-                      </button>
-                      <button onClick={() => setShowDeleteConfirm(s.id)} className="size-9 rounded-lg flex items-center justify-center bg-accent-error/10 text-accent-error active:scale-90 transition-all">
-                        <span className="material-symbols-outlined text-xl">delete</span>
-                      </button>
-                    </div>
+                    {isAdmin && (
+                      <div className="flex gap-1">
+                        <button onClick={() => { setEditingSupplier(s); setFormData(s); }} className="size-9 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-primary active:scale-90 transition-all">
+                          <span className="material-symbols-outlined text-xl">edit</span>
+                        </button>
+                        <button onClick={() => setShowDeleteConfirm(s.id)} className="size-9 rounded-lg flex items-center justify-center bg-accent-error/10 text-accent-error active:scale-90 transition-all">
+                          <span className="material-symbols-outlined text-xl">delete</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between border-t border-slate-50 dark:border-slate-800 pt-3 mt-1">

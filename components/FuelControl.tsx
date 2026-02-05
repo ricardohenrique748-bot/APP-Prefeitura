@@ -6,9 +6,10 @@ import { FuelEntryData } from '../App';
 interface FuelControlProps {
   onAction: (screen: AppScreen) => void;
   fuelEntries: FuelEntryData[];
+  isAdmin?: boolean;
 }
 
-const FuelControl: React.FC<FuelControlProps> = ({ onAction, fuelEntries }) => {
+const FuelControl: React.FC<FuelControlProps> = ({ onAction, fuelEntries, isAdmin = false }) => {
   const averageConsum = fuelEntries.length > 0 ? "2.4" : "0.0";
   const totalCost = fuelEntries.reduce((acc, curr) => acc + curr.totalValue, 0);
 
@@ -54,7 +55,15 @@ const FuelControl: React.FC<FuelControlProps> = ({ onAction, fuelEntries }) => {
                 </div>
                 <div className="flex justify-between items-end mt-0.5">
                   <h4 className="text-[10px] font-bold text-slate-600 dark:text-slate-300">{entry.quantity}L • {entry.item}</h4>
-                  <span className="text-xs font-black text-accent-success">{entry.totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-accent-success">{entry.totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                    {isAdmin && (
+                      <div className="flex gap-1 ml-2">
+                        <button onClick={() => alert("Editar abastecimento (Implementar)")} className="size-6 bg-slate-100 rounded flex items-center justify-center text-slate-500 hover:text-primary"><span className="material-symbols-outlined text-sm">edit</span></button>
+                        <button onClick={() => alert("Excluir abastecimento (Implementar)")} className="size-6 bg-slate-100 rounded flex items-center justify-center text-slate-500 hover:text-accent-error"><span className="material-symbols-outlined text-sm">delete</span></button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

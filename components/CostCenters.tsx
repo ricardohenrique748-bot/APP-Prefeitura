@@ -6,9 +6,10 @@ interface CostCentersProps {
   onBack: () => void;
   centers: (CostCenter & { consumedValue: number; consumedStr: string; availableStr: string; progress: number; warning: boolean })[];
   setCenters: React.Dispatch<React.SetStateAction<CostCenter[]>>;
+  isAdmin?: boolean;
 }
 
-const CostCenters: React.FC<CostCentersProps> = ({ onBack, centers, setCenters }) => {
+const CostCenters: React.FC<CostCentersProps> = ({ onBack, centers, setCenters, isAdmin = false }) => {
   const [editingCenter, setEditingCenter] = useState<CostCenter | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
@@ -142,7 +143,9 @@ const CostCenters: React.FC<CostCentersProps> = ({ onBack, centers, setCenters }
       <div className="p-4 space-y-4">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Centros Ativos ({centers.length})</h3>
-          <button onClick={openAddModal} className="text-primary text-[10px] font-bold bg-primary/10 px-4 py-2 rounded-xl uppercase active:scale-95 transition-transform">+ Novo Centro</button>
+          {isAdmin && (
+            <button onClick={openAddModal} className="text-primary text-[10px] font-bold bg-primary/10 px-4 py-2 rounded-xl uppercase active:scale-95 transition-transform">+ Novo Centro</button>
+          )}
         </div>
 
         {centers.map((cc) => (
@@ -156,14 +159,16 @@ const CostCenters: React.FC<CostCentersProps> = ({ onBack, centers, setCenters }
                   </div>
                   <p className="text-xs text-slate-500 font-medium mt-1">{cc.company}</p>
                 </div>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => openEditModal(cc)} className="size-9 rounded-xl flex items-center justify-center bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-primary active:scale-90 transition-all">
-                    <span className="material-symbols-outlined text-xl">edit</span>
-                  </button>
-                  <button onClick={() => setShowDeleteConfirm(cc.id)} className="size-9 rounded-xl flex items-center justify-center bg-accent-error/10 text-accent-error active:scale-90 transition-all">
-                    <span className="material-symbols-outlined text-xl">delete</span>
-                  </button>
-                </div>
+                {isAdmin && (
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => openEditModal(cc)} className="size-9 rounded-xl flex items-center justify-center bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-primary active:scale-90 transition-all">
+                      <span className="material-symbols-outlined text-xl">edit</span>
+                    </button>
+                    <button onClick={() => setShowDeleteConfirm(cc.id)} className="size-9 rounded-xl flex items-center justify-center bg-accent-error/10 text-accent-error active:scale-90 transition-all">
+                      <span className="material-symbols-outlined text-xl">delete</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-3">
