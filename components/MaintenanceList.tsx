@@ -9,11 +9,7 @@ interface MaintenanceListProps {
 const MaintenanceList: React.FC<MaintenanceListProps> = ({ onAction }) => {
   const [tab, setTab] = useState('ativas');
 
-  const orders = [
-    { id: 'BRA-2E19', type: 'Manutenção Corretiva', status: 'Em Execução', date: '24 Out, 2023 - 14:30', mechanic: 'Ricardo Silva', icon: 'build', statusColor: 'text-blue-500 bg-blue-100 dark:bg-blue-900/30' },
-    { id: 'ABC-1234', type: 'Revisão Preventiva', status: 'Aberta', date: '24 Out, 2023 - 09:15', fleet: 'Logística Pesada', icon: 'verified', statusColor: 'text-amber-500 bg-amber-100 dark:bg-amber-900/30', pending: true },
-    { id: 'XYZ-9876', type: 'Troca de Pneus', status: 'Finalizada', date: '23 Out, 2023 - 17:00', icon: 'task_alt', statusColor: 'text-slate-500 bg-slate-100 dark:bg-slate-900/30' }
-  ];
+  const orders: any[] = [];
 
   return (
     <div className="space-y-4">
@@ -22,13 +18,13 @@ const MaintenanceList: React.FC<MaintenanceListProps> = ({ onAction }) => {
         <div className="px-4 py-4 flex gap-2">
           <div className="relative group flex-1">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">search</span>
-            <input 
-              className="w-full h-12 pl-10 pr-4 bg-slate-100 dark:bg-card-dark border-none rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none" 
-              placeholder="Buscar placa ou OS..." 
-              type="text" 
+            <input
+              className="w-full h-12 pl-10 pr-4 bg-slate-100 dark:bg-card-dark border-none rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none"
+              placeholder="Buscar placa ou OS..."
+              type="text"
             />
           </div>
-          <button 
+          <button
             onClick={() => onAction(AppScreen.OS_CREATE)}
             className="h-12 w-12 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg shadow-primary/30"
           >
@@ -37,12 +33,11 @@ const MaintenanceList: React.FC<MaintenanceListProps> = ({ onAction }) => {
         </div>
         <div className="flex px-4 gap-6 overflow-x-auto no-scrollbar">
           {['Ativas (12)', 'Sinc. Pendente (3)', 'Finalizadas'].map((label, idx) => (
-            <button 
+            <button
               key={idx}
               onClick={() => setTab(label.toLowerCase())}
-              className={`pb-3 pt-2 whitespace-nowrap text-sm font-bold border-b-2 transition-colors ${
-                tab === label.toLowerCase() ? 'border-primary text-primary' : 'border-transparent text-slate-500'
-              }`}
+              className={`pb-3 pt-2 whitespace-nowrap text-sm font-bold border-b-2 transition-colors ${tab === label.toLowerCase() ? 'border-primary text-primary' : 'border-transparent text-slate-500'
+                }`}
             >
               {label}
             </button>

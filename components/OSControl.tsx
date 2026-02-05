@@ -476,39 +476,38 @@ const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders, isAd
             </section>
           )}
         </div>
-        </div>
-  )
-}
+      )
+      }
 
-{/* Delete Confirmation Overlay */ }
-{
-  showDeleteConfirm && (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-8 animate-in fade-in duration-200" onClick={() => setShowDeleteConfirm(false)}>
-      <div className="bg-white dark:bg-card-dark rounded-3xl p-6 w-full max-w-xs text-center space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="size-16 bg-accent-error/10 text-accent-error rounded-full flex items-center justify-center mx-auto mb-2 animate-pulse">
-          <span className="material-symbols-outlined text-3xl font-black">delete_forever</span>
-        </div>
-        <div>
-          <h3 className="text-base font-black uppercase italic mb-1 tracking-tighter">Apagar esta OS?</h3>
-          <p className="text-[10px] text-slate-500 font-medium">Esta ação é permanente e removerá todos os anexos vinculados.</p>
-        </div>
-        <div className="flex flex-col gap-2">
-          <button
-            onClick={confirmDelete}
-            className="w-full h-12 bg-accent-error text-white font-black rounded-xl uppercase tracking-widest shadow-lg shadow-accent-error/20 text-xs hover:bg-accent-error/90"
-          >
-            Sim, Excluir
-          </button>
-          <button onClick={() => setShowDeleteConfirm(false)} className="w-full h-10 text-slate-400 font-bold uppercase text-[9px] hover:text-slate-600">
-            Voltar
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+      {/* Delete Confirmation Overlay */}
+      {
+        showDeleteConfirm && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-8 animate-in fade-in duration-200" onClick={() => setShowDeleteConfirm(false)}>
+            <div className="bg-white dark:bg-card-dark rounded-3xl p-6 w-full max-w-xs text-center space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="size-16 bg-accent-error/10 text-accent-error rounded-full flex items-center justify-center mx-auto mb-2 animate-pulse">
+                <span className="material-symbols-outlined text-3xl font-black">delete_forever</span>
+              </div>
+              <div>
+                <h3 className="text-base font-black uppercase italic mb-1 tracking-tighter">Apagar esta OS?</h3>
+                <p className="text-[10px] text-slate-500 font-medium">Esta ação é permanente e removerá todos os anexos vinculados.</p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={confirmDelete}
+                  className="w-full h-12 bg-accent-error text-white font-black rounded-xl uppercase tracking-widest shadow-lg shadow-accent-error/20 text-xs hover:bg-accent-error/90"
+                >
+                  Sim, Excluir
+                </button>
+                <button onClick={() => setShowDeleteConfirm(false)} className="w-full h-10 text-slate-400 font-bold uppercase text-[9px] hover:text-slate-600">
+                  Voltar
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
 
-<div className="h-24 md:hidden"></div>
+      <div className="h-24 md:hidden"></div>
     </div >
   );
 };

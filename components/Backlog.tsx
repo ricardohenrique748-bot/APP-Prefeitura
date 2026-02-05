@@ -15,10 +15,7 @@ const Backlog: React.FC<BacklogProps> = ({ onBack, onAction, shifts = [], isAdmi
   const [searchTerm, setSearchTerm] = useState('');
 
   const backlogItems = useMemo(() => {
-    const mockItems: BacklogItem[] = [
-      { id: 'm1', plate: 'BRA-2E19', description: 'Vazamento de óleo no motor', priority: 'HIGH', requestDate: '26/10/2023', source: 'Checklist de Saída' },
-      { id: 'm2', plate: 'FLT-9021', description: 'Ruído excessivo na suspensão dianteira', priority: 'MEDIUM', requestDate: '25/10/2023', source: 'Relato do Motorista' },
-    ];
+    const mockItems: BacklogItem[] = [];
 
     const dynamicItems: BacklogItem[] = shifts
       .filter(s => s.damageReport || (s.checklistData && Object.values(s.checklistData).includes(false)))
