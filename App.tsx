@@ -378,7 +378,12 @@ const App: React.FC = () => {
       case AppScreen.OS_CONTROL:
         return <OSControl orders={filteredOrders} setOrders={setOrders} onAction={(screen) => setCurrentScreen(screen)} />;
       case AppScreen.OS_CREATE:
-        return <OSCreate vehicles={filteredVehicles} setOrders={setOrders} onBack={() => setCurrentScreen(AppScreen.OS_CONTROL)} />;
+        return <OSCreate
+          vehicles={filteredVehicles}
+          setOrders={setOrders}
+          onBack={() => setCurrentScreen(AppScreen.OS_CONTROL)}
+          userCostCenter={currentUser?.role !== 'ADMIN' ? currentUser?.costCenter : undefined}
+        />;
       case AppScreen.FUEL_CONTROL:
         return <FuelControl fuelEntries={filteredFuel} onAction={(screen) => setCurrentScreen(screen)} />;
       case AppScreen.FUEL_ENTRY:

@@ -8,9 +8,10 @@ interface OSCreateProps {
   onBack: () => void;
   vehicles: Vehicle[];
   setOrders: React.Dispatch<React.SetStateAction<OSDetail[]>>;
+  userCostCenter?: string;
 }
 
-const OSCreate: React.FC<OSCreateProps> = ({ onBack, vehicles, setOrders }) => {
+const OSCreate: React.FC<OSCreateProps> = ({ onBack, vehicles, setOrders, userCostCenter }) => {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [priority, setPriority] = useState('Média');
   const [type, setType] = useState('Corretiva');
@@ -70,7 +71,7 @@ const OSCreate: React.FC<OSCreateProps> = ({ onBack, vehicles, setOrders }) => {
       time: 'Agora',
       mechanic: '--',
       description: description,
-      costCenter: selectedVehicle.costCenter || 'N/A',
+      costCenter: userCostCenter || (selectedVehicle.costCenter || 'N/A'),
       openedAt: `${date.split('-').reverse().join('/')} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
       isPaid: false,
       costValue: value ? parseFloat(value) : 0,
