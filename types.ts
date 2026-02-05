@@ -57,6 +57,7 @@ export interface User {
   role: 'ADMIN' | 'GESTOR' | 'OPERADOR' | 'MOTORISTA';
   status: 'ACTIVE' | 'INACTIVE';
   avatar?: string;
+  costCenter?: string;
 }
 
 export interface Supplier {

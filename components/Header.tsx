@@ -5,9 +5,10 @@ import { AppScreen } from '../types';
 interface HeaderProps {
   currentScreen: AppScreen;
   avatarUrl: string;
+  userName?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ currentScreen, avatarUrl }) => {
+const Header: React.FC<HeaderProps> = ({ currentScreen, avatarUrl, userName }) => {
   const [syncing, setSyncing] = useState(false);
 
   const handleSync = () => {
@@ -36,7 +37,7 @@ const Header: React.FC<HeaderProps> = ({ currentScreen, avatarUrl }) => {
             <h2 className="text-lg font-bold leading-tight tracking-tight">{getTitle()}</h2>
             <div className="flex items-center gap-1.5">
               <span className="flex h-2 w-2 rounded-full bg-accent-success animate-pulse"></span>
-              <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Online • Sincronizado</p>
+              <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">{userName || 'Online • Sincronizado'}</p>
             </div>
           </div>
         </div>

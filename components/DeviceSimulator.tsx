@@ -7,9 +7,11 @@ interface DeviceSimulatorProps {
   onNavigate: (screen: AppScreen) => void;
   showSidebar?: boolean;
   userAvatar?: string;
+  userName?: string;
+  userRole?: string;
 }
 
-const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({ children, currentScreen, onNavigate, showSidebar = true, userAvatar }) => {
+const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({ children, currentScreen, onNavigate, showSidebar = true, userAvatar, userName, userRole }) => {
   const menuItems = [
     { icon: 'dashboard', label: 'Painel', screen: AppScreen.DASHBOARD },
     { icon: 'local_shipping', label: 'Frota', screen: AppScreen.FLEET_MANAGEMENT },
@@ -62,8 +64,8 @@ const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({ children, currentScre
                 {userAvatar ? <img src={userAvatar} className="w-full h-full object-cover" alt="User" /> : null}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold truncate dark:text-white">Ricardo Luz</p>
-                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider truncate">Gestor de Frota</p>
+                <p className="text-xs font-bold truncate dark:text-white">{userName || 'Usuário'}</p>
+                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider truncate">{userRole || 'Visitante'}</p>
               </div>
             </div>
           </div>

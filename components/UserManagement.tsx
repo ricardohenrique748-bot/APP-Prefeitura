@@ -1,14 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { User } from '../types';
+import { User, CostCenter } from '../types';
 import { supabase } from '../services/supabase';
 
 interface UserManagementProps {
   onBack: () => void;
   currentUserRole: 'ADMIN' | 'GESTOR' | 'OPERADOR' | 'MOTORISTA';
+  costCenters: CostCenter[];
 }
 
-const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole }) => {
+const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole, costCenters }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,7 +21,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
     name: '',
     email: '',
     role: 'OPERADOR' as 'ADMIN' | 'GESTOR' | 'OPERADOR' | 'MOTORISTA',
-    status: 'ACTIVE' as 'ACTIVE' | 'INACTIVE'
+    status: 'ACTIVE' as 'ACTIVE' | 'INACTIVE',
+    costCenter: ''
   });
 
   useEffect(() => {
@@ -33,7 +35,12 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
       const { data, error } = await supabase.from('app_users').select('*').order('name');
       if (error) throw error;
       if (data) {
-        setUsers(data as User[]);
+        // Map cost_center from snake_case if necessary, though types usually map 1:1 if configured
+        const mappedUsers = data.map((u: any) => ({
+          ...u,
+          costCenter: u.cost_center
+        }));
+        setUsers(mappedUsers as User[]);
       }
     } catch (error) {
       console.error("Erro ao carregar usuários:", error);
@@ -52,7 +59,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
       name: '',
       email: '',
       role: currentUserRole === 'GESTOR' ? 'MOTORISTA' : 'OPERADOR',
-      status: 'ACTIVE'
+      status: 'ACTIVE',
+      costCenter: ''
     });
     setIsAdding(true);
   };
@@ -67,7 +75,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
       name: user.name,
       email: user.email,
       role: user.role as any,
-      status: user.status
+      status: user.status,
+      costCenter: user.costCenter || ''
     });
   };
 
@@ -81,6 +90,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
           email: formData.email,
           role: formData.role,
           status: formData.status,
+          cost_center: formData.costCenter,
           avatar: `https://ui-avatars.com/api/?name=${formData.name}&background=1754cf&color=fff`
         }]);
         if (error) throw error;
@@ -90,7 +100,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
           name: formData.name,
           email: formData.email,
           role: formData.role,
-          status: formData.status
+          status: formData.status,
+          cost_center: formData.costCenter
         }).eq('id', editingUser.id);
         if (error) throw error;
         setEditingUser(null);
@@ -182,6 +193,12 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
                         <span className={`inline-block mt-2 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${getRoleBadge(user.role)}`}>
                           {user.role}
                         </span>
+                        {user.costCenter && (
+                          <div className="mt-1 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[10px] text-slate-400">account_balance_wallet</span>
+                            <span className="text-[9px] font-bold text-slate-500 uppercase">{user.costCenter}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="flex gap-1">
@@ -279,6 +296,23 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
                     <option value="ACTIVE">Ativo</option>
                     <option value="INACTIVE">Inativo</option>
                   </select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Centro de Custo (Vínculo)</label>
+                <div className="relative">
+                  <select
+                    value={formData.costCenter}
+                    onChange={(e) => setFormData({ ...formData, costCenter: e.target.value })}
+                    className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary appearance-none"
+                  >
+                    <option value="">Sem vínculo</option>
+                    {costCenters.map(cc => (
+                      <option key={cc.id} value={cc.id + ' - ' + cc.name}>{cc.id} - {cc.name}</option>
+                    ))}
+                  </select>
+                  <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">expand_more</span>
                 </div>
               </div>
 

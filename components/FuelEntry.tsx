@@ -1,20 +1,23 @@
 
 import React, { useState, useRef } from 'react';
 import { FuelEntryData } from '../App';
-import { Vehicle } from '../types';
+import { Vehicle, Supplier } from '../types';
 
 interface FuelEntryProps {
   onBack: () => void;
   onSave: (entry: FuelEntryData) => void;
   vehicles: Vehicle[];
+  suppliers: Supplier[];
 }
 
-const FuelEntry: React.FC<FuelEntryProps> = ({ onBack, onSave, vehicles }) => {
+const FuelEntry: React.FC<FuelEntryProps> = ({ onBack, onSave, vehicles, suppliers }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [invoicePreview, setInvoicePreview] = useState<string | null>(null);
 
   const activeVehicles = vehicles.filter(v => v.status === 'ACTIVE');
+  const gasStations = suppliers.filter(s => s.category === 'COMBUSTÍVEL');
 
   const [formData, setFormData] = useState({
     driver: 'RICARDO LUZ',
@@ -23,7 +26,8 @@ const FuelEntry: React.FC<FuelEntryProps> = ({ onBack, onSave, vehicles }) => {
     costCenter: activeVehicles.length > 0 ? (activeVehicles[0].costCenter || '101 - Colheita') : '101 - Colheita',
     item: 'Diesel S10',
     quantity: '',
-    unitPrice: '6.15'
+    unitPrice: '',
+    supplier: ''
   });
 
   const handlePlateChange = (plate: string) => {
@@ -56,6 +60,7 @@ const FuelEntry: React.FC<FuelEntryProps> = ({ onBack, onSave, vehicles }) => {
     if (!formData.plate) return alert("Selecione um veículo.");
     if (!formData.quantity || parseFloat(formData.quantity) <= 0) return alert("Informe uma quantidade válida.");
     if (!formData.unitPrice || parseFloat(formData.unitPrice) <= 0) return alert("Informe o valor unitário.");
+    // Optional: if (!formData.supplier) return alert("Selecione o posto."); 
 
     setLoading(true);
     const qty = parseFloat(formData.quantity);
@@ -71,7 +76,8 @@ const FuelEntry: React.FC<FuelEntryProps> = ({ onBack, onSave, vehicles }) => {
       quantity: qty,
       unitPrice: price,
       totalValue: qty * price,
-      invoiceUrl: invoicePreview || undefined
+      invoiceUrl: invoicePreview || undefined,
+      supplier: formData.supplier
     };
 
     setTimeout(() => {
@@ -113,6 +119,24 @@ const FuelEntry: React.FC<FuelEntryProps> = ({ onBack, onSave, vehicles }) => {
             </div>
           </label>
 
+          <label className="block space-y-1">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Posto / Fornecedor</span>
+            <div className="relative">
+              <select
+                value={formData.supplier}
+                onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                className="w-full h-14 rounded-2xl bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 px-4 font-bold outline-none appearance-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="">Selecione o Posto...</option>
+                {gasStations.map(s => (
+                  <option key={s.id} value={s.id + ' - ' + s.name}>{s.name}</option>
+                ))}
+                <option value="OUTRO">Outro / Não Cadastrado</option>
+              </select>
+              <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">expand_more</span>
+            </div>
+          </label>
+
           <div className="grid grid-cols-2 gap-4">
             <label className="block space-y-1">
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Quantidade (L)</span>
@@ -137,7 +161,7 @@ const FuelEntry: React.FC<FuelEntryProps> = ({ onBack, onSave, vehicles }) => {
           </div>
 
           <label className="block space-y-1">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Item de Consumo</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Tipo de Combustível</span>
             <div className="relative">
               <select
                 value={formData.item}
@@ -146,8 +170,9 @@ const FuelEntry: React.FC<FuelEntryProps> = ({ onBack, onSave, vehicles }) => {
               >
                 <option>Diesel S10</option>
                 <option>Diesel S500</option>
-                <option>Arla 32</option>
                 <option>Gasolina Comum</option>
+                <option>Etanol (Álcool)</option>
+                <option>Arla 32</option>
                 <option>Lubrificante Motor</option>
               </select>
               <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">expand_more</span>
@@ -175,44 +200,44 @@ const FuelEntry: React.FC<FuelEntryProps> = ({ onBack, onSave, vehicles }) => {
             ref={fileInputRef}
             onChange={handleFileChange}
           />
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            ref={cameraInputRef}
+            onChange={handleFileChange}
+          />
 
           {!invoicePreview ? (
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full h-24 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center gap-1 text-slate-400 hover:bg-slate-50 transition-all active:scale-95"
-            >
-              <span className="material-symbols-outlined text-3xl">picture_as_pdf</span>
-              <span className="text-[10px] font-bold uppercase tracking-widest italic">Anexar Nota Fiscal / NF-E (PDF)</span>
-            </button>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => cameraInputRef.current?.click()}
+                className="h-24 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center gap-1 text-slate-400 hover:bg-slate-50 transition-all active:scale-95"
+              >
+                <span className="material-symbols-outlined text-3xl">photo_camera</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest italic">Usar Câmera</span>
+              </button>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="h-24 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center gap-1 text-slate-400 hover:bg-slate-50 transition-all active:scale-95"
+              >
+                <span className="material-symbols-outlined text-3xl">upload_file</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest italic">Carregar PDF</span>
+              </button>
+            </div>
           ) : (
             <div className="relative w-full h-24 rounded-2xl overflow-hidden border-2 border-primary/30 bg-primary/5 flex items-center justify-between px-6 group">
               <div className="flex items-center gap-4">
                 <div className="size-12 bg-white rounded-xl flex items-center justify-center text-accent-error shadow-sm">
-                  <span className="material-symbols-outlined text-2xl">picture_as_pdf</span>
+                  <span className="material-symbols-outlined text-2xl">description</span>
                 </div>
                 <div>
-                  <h4 className="text-xs font-black uppercase text-slate-700 dark:text-slate-200">Documento Anexado</h4>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">PDF • Nota Fiscal</p>
+                  <h4 className="text-xs font-black uppercase text-slate-700 dark:text-slate-200">Arquivo Anexado</h4>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Pronto para envio</p>
                 </div>
               </div>
               <div className="flex gap-2">
-                <a
-                  href={invoicePreview}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="size-8 bg-primary/10 text-primary rounded-xl flex items-center justify-center active:scale-90 transition-transform"
-                  title="Visualizar"
-                >
-                  <span className="material-symbols-outlined text-sm">visibility</span>
-                </a>
-                <a
-                  href={invoicePreview}
-                  download={`FUEL_ANEXO_${Date.now()}.pdf`}
-                  className="size-8 bg-accent-success/10 text-accent-success rounded-xl flex items-center justify-center active:scale-90 transition-transform"
-                  title="Baixar"
-                >
-                  <span className="material-symbols-outlined text-sm">download</span>
-                </a>
                 <button
                   onClick={() => setInvoicePreview(null)}
                   className="size-8 bg-accent-error/10 text-accent-error rounded-xl flex items-center justify-center active:scale-90 transition-transform"

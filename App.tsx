@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { AppScreen, Vehicle, User, Shift } from './types';
+import { AppScreen, Vehicle, User, Shift, Supplier } from './types';
 import DeviceSimulator from './components/DeviceSimulator';
 import Dashboard from './components/Dashboard';
 import ShiftStart from './components/ShiftStart';
@@ -22,6 +22,7 @@ import SupplierManagement from './components/SupplierManagement';
 import Backlog from './components/Backlog';
 import SupplierQuote from './components/SupplierQuote';
 import ChecklistHistory from './components/ChecklistHistory';
+import { supabase } from './services/supabase';
 
 export interface OSDetail {
   id: string;
@@ -52,6 +53,7 @@ export interface FuelEntryData {
   unitPrice: number;
   totalValue: number;
   invoiceUrl?: string;
+  supplier?: string;
 }
 
 export interface CostCenter {
@@ -68,17 +70,6 @@ const DEFAULT_COST_CENTERS: CostCenter[] = [
   { id: '201', name: 'Manutenção', company: 'Logística Centro-Oeste', budget: 10000, color: 'bg-primary' },
   { id: '304', name: 'Combustível', company: 'Expresso Rápido Ltda.', budget: 30000, color: 'bg-primary' },
 ];
-
-const DEFAULT_VEHICLES: Vehicle[] = [
-  { id: '9021', plate: 'FLT-9021', model: 'Scania R450', type: 'Caminhão Pesado', status: 'ACTIVE', km: 142850, lastPreventiveKm: 138000, year: '2022', costCenter: '101 - Colheita', responsibleEmail: 'gerencia.transporte@empresa.com' },
-  { id: '8821', plate: 'BRA-2E19', model: 'Volvo FH 540', type: 'Caminhão Pesado', status: 'ACTIVE', km: 99300, lastPreventiveKm: 85000, year: '2023', costCenter: '201 - Manutenção', responsibleEmail: 'manutencao@empresa.com' },
-  { id: '1234', plate: 'ABC-1234', model: 'Mercedes-Benz Actros', type: 'Caminhão Pesado', status: 'ACTIVE', km: 210500, lastPreventiveKm: 200000, year: '2021', costCenter: '101 - Colheita', responsibleEmail: 'operacoes@empresa.com' },
-  { id: '1020', plate: 'VAN-1020', model: 'Sprinter 415', type: 'Utilitário', status: 'INACTIVE', km: 45000, lastPreventiveKm: 40000, year: '2020', costCenter: '102 - Transp. Interno' },
-];
-
-import { supabase } from './services/supabase';
-
-// ... (keep interface definitions)
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -100,10 +91,10 @@ const App: React.FC = () => {
   const [fuelEntries, setFuelEntries] = useState<FuelEntryData[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [activeShifts, setActiveShifts] = useState<string[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
 
   // Carregar dados do Supabase ao iniciar
   useEffect(() => {
-    // Check for direct links (e.g. Supplier Quotes)
     const params = new URLSearchParams(window.location.search);
     const screenParam = params.get('screen');
     if (screenParam === 'SUPPLIER_QUOTE') {
@@ -115,7 +106,7 @@ const App: React.FC = () => {
     const fetchData = async () => {
       try {
         // Buscar Veículos
-        const { data: vData, error: vError } = await supabase.from('vehicles').select('*');
+        const { data: vData } = await supabase.from('vehicles').select('*');
         if (vData) {
           const mappedVehicles = vData.map((v: any) => ({
             id: v.id,
@@ -126,7 +117,7 @@ const App: React.FC = () => {
             km: v.km,
             lastPreventiveKm: v.last_preventive_km,
             costCenter: v.cost_center,
-            year: '2023' // Default or fetch if added to DB
+            year: '2023'
           }));
           setVehicles(mappedVehicles);
         }
@@ -137,7 +128,7 @@ const App: React.FC = () => {
           const mappedOrders = oData.map((o: any) => ({
             id: o.id,
             plate: o.plate,
-            task: o.description || 'Manutenção Diversa', // Fallback mapping based on schema differences
+            task: o.description || 'Manutenção Diversa',
             taskType: o.type,
             status: o.status,
             priority: o.priority,
@@ -161,11 +152,11 @@ const App: React.FC = () => {
             id: f.id,
             plate: f.plate,
             driver: f.driver || 'Motorista',
-            date: f.date, // Format date if needed
-            costCenter: '304 - Combustível', // You might want to join vehicle to get CC
+            date: f.date,
+            costCenter: '304 - Combustível',
             item: f.fuel_type || 'Diesel',
             quantity: Number(f.quantity),
-            unitPrice: Number(f.total_value) / Number(f.quantity), // Estimate
+            unitPrice: Number(f.total_value) / Number(f.quantity),
             totalValue: Number(f.total_value),
             invoiceUrl: ''
           }));
@@ -189,6 +180,12 @@ const App: React.FC = () => {
             status: s.status
           }));
           setShifts(mappedShifts);
+        }
+
+        // Buscar Fornecedores
+        const { data: supData } = await supabase.from('suppliers').select('*');
+        if (supData) {
+          setSuppliers(supData as Supplier[]);
         }
 
       } catch (error) {
@@ -274,8 +271,6 @@ const App: React.FC = () => {
     if (!activeShifts.includes(shiftData.vehicle_id)) {
       setActiveShifts(prev => [...prev, shiftData.vehicle_id]);
     }
-
-    // Optional: Save to Supabase here if you had the table structure ready
   };
 
   const handleFinishShift = (vehicleId: string) => {
@@ -322,7 +317,7 @@ const App: React.FC = () => {
       case AppScreen.FUEL_CONTROL:
         return <FuelControl fuelEntries={fuelEntries} onAction={(screen) => setCurrentScreen(screen)} />;
       case AppScreen.FUEL_ENTRY:
-        return <FuelEntry vehicles={vehicles} onSave={handleAddFuelEntry} onBack={() => setCurrentScreen(AppScreen.FUEL_CONTROL)} />;
+        return <FuelEntry vehicles={vehicles} suppliers={suppliers} onSave={handleAddFuelEntry} onBack={() => setCurrentScreen(AppScreen.FUEL_CONTROL)} />;
       case AppScreen.COST_CENTERS:
         return <CostCenters centers={centersWithStats} setCenters={setCostCenters} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.FLEET_MANAGEMENT:
@@ -332,7 +327,7 @@ const App: React.FC = () => {
       case AppScreen.TIRE_BULLETIN:
         return <TireBulletin vehicles={vehicles} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.USER_MANAGEMENT:
-        return <UserManagement currentUserRole={currentUser?.role || 'OPERADOR'} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
+        return <UserManagement currentUserRole={currentUser?.role || 'OPERADOR'} costCenters={costCenters} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.SUPPLIER_MANAGEMENT:
         return <SupplierManagement onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.BACKLOG:
@@ -363,14 +358,21 @@ const App: React.FC = () => {
   };
 
   return (
-    <DeviceSimulator currentScreen={currentScreen} onNavigate={setCurrentScreen} showSidebar={isAuthenticated} userAvatar={userAvatar}>
+    <DeviceSimulator
+      currentScreen={currentScreen}
+      onNavigate={setCurrentScreen}
+      showSidebar={isAuthenticated}
+      userAvatar={userAvatar}
+      userName={currentUser?.name}
+      userRole={currentUser?.role}
+    >
       <div className="flex flex-col h-full min-h-full bg-background-light dark:bg-background-dark w-full overflow-x-hidden relative transition-colors duration-300">
         {!isAuthenticated && currentScreen !== AppScreen.SUPPLIER_QUOTE ? (
           <Login onLogin={(user) => setCurrentUser(user)} isDarkMode={isDarkMode} />
         ) : (
           <>
             <div className="md:hidden shrink-0">
-              <Header currentScreen={currentScreen} avatarUrl={userAvatar} />
+              <Header currentScreen={currentScreen} avatarUrl={userAvatar} userName={currentUser?.name} />
             </div>
             <main className="flex-1 overflow-y-auto w-full pb-20">
               {renderScreen()}
