@@ -1,16 +1,23 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-// Standard initialization using the API_KEY environment variable as per guidelines.
-// Note: In Vite, use import.meta.env.VITE_GEMINI_API_KEY
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
-const ai = new GoogleGenAI({ apiKey });
+const getAiClient = () => {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!apiKey) {
+    console.warn("Gemini API Key not found in environment variables.");
+    return null;
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 export const getFleetInsights = async (osData: any[]) => {
   try {
+    const ai = getAiClient();
+    if (!ai) return "Serviço de IA indisponível (Chave de API ausente).";
+
     // Request fleet analysis and recommendations based on current service orders data.
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.0-flash-exp',
       contents: `Analise o status atual da frota baseado nestas ordens de serviço: ${JSON.stringify(osData)}. Forneça um resumo curto e recomendações de manutenção preventiva.`,
       config: {
         systemInstruction: "Você é um especialista em gestão de frotas logísticas. Forneça insights práticos e concisos em português."
@@ -25,8 +32,11 @@ export const getFleetInsights = async (osData: any[]) => {
 
 export const generatePreventiveEmailBody = async (vehicle: any, diffKm: number) => {
   try {
+    const ai = getAiClient();
+    if (!ai) return `Alerta de Manutenção: Veículo ${vehicle.plate} excedeu o limite. (IA Indisponível)`;
+
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.0-flash-exp',
       contents: `Escreva um e-mail formal e urgente para o responsável pelo veículo ${vehicle.plate} (${vehicle.model}). 
       O veículo atingiu ${vehicle.km}km e já rodou ${diffKm}km desde a última preventiva. 
       O limite de 10.000km foi excedido. Inclua os riscos de segurança e produtividade caso a manutenção não seja agendada imediatamente.`,

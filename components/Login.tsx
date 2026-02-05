@@ -96,8 +96,8 @@ const Login: React.FC<LoginProps> = ({ onLogin, isDarkMode = false }) => {
             <img
               src={isDarkMode ? "/logo-dark.png" : "/logo-light.png"}
               alt="SMART TECH Logo"
-              className="w-full h-full object-contain max-h-24"
-              style={{ mixBlendMode: isDarkMode ? 'screen' : 'multiply' }}
+              className="w-full h-full object-contain max-h-24 mx-auto"
+              style={{ mixBlendMode: isDarkMode ? 'screen' : 'multiply', maxHeight: '100px', width: 'auto' }}
             />
           </div>
           <div className="text-center mt-1">

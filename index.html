@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Smart Tech</title>
     <link rel="icon" type="image/png" href="/logo.png">
     <link rel="manifest" href="manifest.json">
@@ -11,11 +12,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
-    <link rel="stylesheet" href="index.css">
+
 </head>
 
 <body
     class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen transition-colors duration-300">
+    <script>
+        window.onerror = function (message, source, lineno, colno, error) {
+            // Only show if root is empty (app didnt load)
+            if (document.getElementById('root').innerHTML.trim() === '') {
+                document.body.innerHTML = '<div style="color:red; background:white; padding:20px; z-index:9999; position:fixed; top:0; left:0; width:100%; height:100%;"><h1>Erro ao Iniciar</h1><p>' + message + '</p><p>' + source + ':' + lineno + '</p></div>';
+            }
+            console.error(error);
+        };
+    </script>
     <div id="root"></div>
     <script>
         if ('serviceWorker' in navigator) {
