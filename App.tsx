@@ -107,7 +107,7 @@ const App: React.FC = () => {
       try {
         // Buscar Veículos
         const { data: vData } = await supabase.from('vehicles').select('*');
-        if (vData) {
+        if (vData && vData.length > 0) {
           const mappedVehicles = vData.map((v: any) => ({
             id: v.id,
             plate: v.plate,
@@ -120,6 +120,24 @@ const App: React.FC = () => {
             year: '2023'
           }));
           setVehicles(mappedVehicles);
+        }
+
+        // Buscar Centros de Custo (NOVO)
+        const { data: ccData } = await supabase.from('cost_centers').select('*');
+        if (ccData && ccData.length > 0) {
+          const mappedCenters = ccData.map((c: any) => ({
+            id: c.id.toString(),
+            name: c.name,
+            company: c.company,
+            budget: Number(c.budget),
+            color: c.color || 'bg-primary'
+          }));
+          setCostCenters(mappedCenters);
+        } else {
+          // Se não vier nada do banco (primeira vez), usar defaults e talvez salvar lá?
+          // Por enquanto mantemos o default local APENAS se o banco falhar/estiver vazio
+          // setCostCenters(DEFAULT_COST_CENTERS); 
+          // COMENTADO: Melhor respeitar o banco vazio se a conexão funcionar
         }
 
         // Buscar OS
