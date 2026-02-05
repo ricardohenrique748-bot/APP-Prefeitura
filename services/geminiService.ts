@@ -2,7 +2,9 @@
 import { GoogleGenAI } from "@google/genai";
 
 // Standard initialization using the API_KEY environment variable as per guidelines.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Note: In Vite, use import.meta.env.VITE_GEMINI_API_KEY
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+const ai = new GoogleGenAI({ apiKey });
 
 export const getFleetInsights = async (osData: any[]) => {
   try {
