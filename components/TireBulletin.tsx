@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Vehicle } from '../types';
-import { supabase } from '../services/supabase';
+import { supabase } from '../services/supabaseClient';
 
 interface TireRegistration {
   id: string;

@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AppScreen } from '../types';
 import { OSDetail } from '../App';
-import { supabase } from '../services/supabase';
+import { supabase } from '../services/supabaseClient';
 
 interface OSControlProps {
   onAction: (screen: AppScreen) => void;

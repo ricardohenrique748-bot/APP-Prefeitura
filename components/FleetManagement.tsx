@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { AppScreen, Vehicle } from '../types';
 import { CostCenter } from '../App';
-import { supabase } from '../services/supabase';
+import { supabase } from '../services/supabaseClient';
 
 interface FleetManagementProps {
   onBack: () => void;

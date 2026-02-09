@@ -22,7 +22,7 @@ import SupplierManagement from './components/SupplierManagement';
 import Backlog from './components/Backlog';
 import SupplierQuote from './components/SupplierQuote';
 import ChecklistHistory from './components/ChecklistHistory';
-import { supabase } from './services/supabase';
+import { supabase } from './services/supabaseClient';
 
 export interface OSDetail {
   id: string;

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, CostCenter } from '../types';
-import { supabase } from '../services/supabase';
+import { supabase } from '../services/supabaseClient';
 
 interface UserManagementProps {
   onBack: () => void;

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../services/supabase';
+import { supabase } from '../services/supabaseClient';
 
 interface SupplierQuoteProps {
   onBack: () => void;

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Supplier } from '../types';
-import { supabase } from '../services/supabase';
+import { supabase } from '../services/supabaseClient';
 
 interface SupplierManagementProps {
   onBack: () => void;
