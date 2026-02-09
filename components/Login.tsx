@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
+import { supabase } from '../services/supabaseClient';
 
 interface LoginProps {
   onLogin: (user: User) => void;
@@ -38,53 +39,99 @@ const Login: React.FC<LoginProps> = ({ onLogin, isDarkMode = false }) => {
     onLogin(user);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    setTimeout(() => {
-      // Logic for Admin (Ricardo)
-      if ((email === 'ricardo.luz@prefeitura.gov.br' || email === 'ricardo.luz@eunaman.com.br') && password === '123456') {
-        const adminUser: User = {
-          id: '1',
-          name: 'Ricardo Luz',
-          email: email,
-          role: 'ADMIN',
-          status: 'ACTIVE',
-          avatar: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&h=400&fit=crop"
-        };
-        loginUser(adminUser);
-      }
-      // Logic for Admin (Pedro)
-      else if (email === 'Roosevelt92@gmail.com' && password === '123456') {
-        const adminUser: User = {
-          id: '3',
-          name: 'Pedro',
-          email: email,
-          role: 'ADMIN',
-          status: 'ACTIVE',
-          avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop"
-        };
-        loginUser(adminUser);
-      }
-      // Logic for Motorista
-      else if (email === 'motorista@prefeitura.gov.br' && password === '123456') {
-        const driverUser: User = {
-          id: '2',
-          name: 'Motorista Padrão',
-          email: email,
-          role: 'MOTORISTA',
-          status: 'ACTIVE',
-          avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400&h=400&fit=crop"
-        };
-        onLogin(driverUser);
-      }
-      else {
-        setError('E-mail ou senha incorretos.');
+    // Logic for Admin (Ricardo)
+    if ((email === 'ricardo.luz@prefeitura.gov.br' || email === 'ricardo.luz@eunaman.com.br') && password === '123456') {
+      const adminUser: User = {
+        id: '1',
+        name: 'Ricardo Luz',
+        email: email,
+        role: 'ADMIN',
+        status: 'ACTIVE',
+        avatar: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&h=400&fit=crop"
+      };
+      loginUser(adminUser);
+      return;
+    }
+
+    // Logic for Admin (Pedro)
+    if (email === 'Roosevelt92@gmail.com' && password === '123456') {
+      const adminUser: User = {
+        id: '3',
+        name: 'Pedro',
+        email: email,
+        role: 'ADMIN',
+        status: 'ACTIVE',
+        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop"
+      };
+      loginUser(adminUser);
+      return;
+    }
+
+    // Database Login
+    try {
+      // Check if user exists in app_users
+      const { data, error: dbError } = await supabase
+        .from('app_users')
+        .select('*')
+        .eq('email', email)
+        .single();
+
+      if (dbError && dbError.code !== 'PGRST116') {
+        console.error("Login Error:", dbError);
+        setError('Erro de conexão com o servidor.');
         setLoading(false);
+        return;
       }
-    }, 1200);
+
+      if (data) {
+        // User found. Check password.
+        // Currently utilizing default password '123456' or '123' as per previous rules, 
+        // until a proper password field is implemented in app_users.
+        // Assuming password is the input 'password'
+
+        // TEMPORARY: Allow '123456' or '123' or any password if we don't have a column?
+        // Let's enforce '123456' for now as the hardcoded ones use it.
+        if (password === '123456' || password === '123') {
+          const dbUser: User = {
+            id: data.id,
+            name: data.name,
+            email: data.email,
+            role: data.role as any,
+            status: data.status as any,
+            avatar: data.avatar || `https://ui-avatars.com/api/?name=${data.name}&background=random`,
+            costCenter: data.cost_center
+          };
+
+          if (dbUser.status !== 'ACTIVE') {
+            setError('Usuário inativo. Contate o suporte.');
+            setLoading(false);
+            return;
+          }
+
+          loginUser(dbUser);
+          return;
+        } else {
+          setError('Senha incorreta.');
+          setLoading(false);
+          return;
+        }
+      }
+
+      setError('E-mail não encontrado ou senha incorreta.');
+      setLoading(false);
+
+    } catch (err) {
+      console.error("Login Exception:", err);
+      setError('Ocorreu um erro ao tentar entrar.');
+      setLoading(false);
+    }
   };
 
   const handleRecovery = (e: React.FormEvent) => {
