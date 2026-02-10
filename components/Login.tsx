@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
 import { supabase } from '../services/supabaseClient';
+import { Logo } from './Logo';
 
 interface LoginProps {
   onLogin: (user: User) => void;
@@ -155,11 +156,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, isDarkMode = false }) => {
       <div className="w-full max-w-sm space-y-10 animate-in fade-in duration-500 md:scale-110">
         <div className="flex flex-col items-center gap-0">
           <div className="w-full flex items-center justify-center py-6">
-            <img
-              src="/logo-light.png"
-              alt="SMART TECH Logo"
-              className="w-48 md:w-64 h-auto object-contain mx-auto mix-blend-multiply dark:mix-blend-screen dark:invert dark:hue-rotate-180"
-            />
+            <Logo className="h-24 md:h-32 w-auto" />
           </div>
           <div className="text-center mt-1">
             <p className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">Sistemas de Gestão Operacional</p>
