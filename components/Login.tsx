@@ -156,9 +156,9 @@ const Login: React.FC<LoginProps> = ({ onLogin, isDarkMode = false }) => {
         <div className="flex flex-col items-center gap-0">
           <div className="w-full flex items-center justify-center py-6">
             <img
-              src={isDarkMode ? "/logo-dark.png" : "/logo-light.png"}
+              src="/logo-light.png"
               alt="SMART TECH Logo"
-              className="w-48 md:w-64 h-auto object-contain mx-auto mix-blend-multiply dark:mix-blend-screen"
+              className="w-48 md:w-64 h-auto object-contain mx-auto mix-blend-multiply dark:mix-blend-screen dark:invert dark:hue-rotate-180"
             />
           </div>
           <div className="text-center mt-1">
