@@ -1,5 +1,6 @@
 import React from 'react';
 import { AppScreen } from '../types';
+import { Logo } from './Logo';
 
 interface DeviceSimulatorProps {
   children: React.ReactNode;
@@ -35,16 +36,7 @@ const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({ children, currentScre
       {showSidebar && (
         <aside className="hidden md:flex w-64 flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-card-dark flex-shrink-0 relative z-20">
           <div className="h-32 flex items-center justify-center py-4 px-4 border-b border-slate-100 dark:border-slate-800/50 overflow-hidden">
-            <img
-              src="/logo-light.png"
-              alt="Smart Tech"
-              className="h-full w-auto object-contain scale-150 dark:hidden transition-all hover:scale-[1.6] duration-300 mix-blend-multiply"
-            />
-            <img
-              src="/logo-dark.png"
-              alt="Smart Tech"
-              className="h-full w-auto object-contain scale-150 hidden dark:block transition-all hover:scale-[1.6] duration-300 mix-blend-screen"
-            />
+            <Logo className="scale-75" />
           </div>
 
           <nav className="flex-1 px-4 space-y-1.5 py-4 overflow-y-auto">
