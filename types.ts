@@ -114,10 +114,12 @@ export interface OSDetail {
   description: string;
   costCenter: string;
   openedAt: string;
+  createdAt?: string;
   isPaid: boolean;
   costValue?: number;
   invoiceUrl?: string;
   quoteUrl?: string;
+  previousPreventiveKm?: number;
 }
 
 export interface FuelEntryData {
@@ -130,6 +132,7 @@ export interface FuelEntryData {
   quantity: number;
   unitPrice: number;
   totalValue: number;
+  km?: number;
   invoiceUrl?: string;
   supplier?: string;
 }

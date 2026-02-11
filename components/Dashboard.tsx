@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, AreaChart, Area } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, AreaChart, Area, Legend } from 'recharts';
 import { AppScreen, Vehicle, OSDetail, FuelEntryData } from '../types';
 
 interface DashboardProps {
@@ -16,9 +16,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
     total: orders.length,
     abertas: orders.filter(os => os.status !== 'Finalizada').length,
     finalizadas: orders.filter(os => os.status === 'Finalizada').length,
-    custoTotalManutencao: (orders.filter(os => os.isPaid).length * 1245).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-    custoTotalCombustivel: fuelEntries.reduce((acc, curr) => acc + curr.totalValue, 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-    totalLitros: fuelEntries.reduce((acc, curr) => acc + curr.quantity, 0).toLocaleString('pt-BR') + ' L'
+    custoTotalManutencao: orders.reduce((acc, curr) => acc + (Number(curr.costValue) || 0), 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+    custoTotalCombustivel: fuelEntries.reduce((acc, curr) => acc + (Number(curr.totalValue) || 0), 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+    totalLitros: fuelEntries.reduce((acc, curr) => acc + (Number(curr.quantity) || 0), 0).toLocaleString('pt-BR') + ' L'
   };
 
   // Helper para determinar o intervalo de preventiva por tipo
@@ -69,6 +69,44 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
     { name: 'INATIVOS', value: counts.INACTIVE, color: '#334155' },
   ];
 
+  // Enriquecer Centros de Custo com dados reais de Manutenção e Combustível
+  const enrichedCostCenters = React.useMemo(() => {
+    return costCenters.map(cc => {
+      const ccName = (cc.name || "").trim();
+      const ccId = (cc.id || "").toString().trim();
+
+      // Filtra orders que tenham o nome ou ID do centro de custo na string
+      const maintenanceTotal = orders
+        .filter(o => {
+          if (!o.costCenter) return false;
+          const osCC = o.costCenter.trim();
+          return osCC.includes(ccName) || osCC.startsWith(ccId + ' ') || osCC === ccId;
+        })
+        .reduce((acc, curr) => acc + (Number(curr.costValue) || 0), 0);
+
+      const fuelTotal = fuelEntries
+        .filter(f => {
+          if (!f.costCenter) return false;
+          const fuelCC = f.costCenter.trim();
+          return fuelCC.includes(ccName) || fuelCC.startsWith(ccId + ' ') || fuelCC === ccId;
+        })
+        .reduce((acc, curr) => acc + (Number(curr.totalValue) || 0), 0);
+
+      const totalConsumed = maintenanceTotal + fuelTotal;
+      const progress = cc.budget > 0 ? Math.round((totalConsumed / cc.budget) * 100) : 0;
+
+      return {
+        ...cc,
+        maintenance: maintenanceTotal,
+        fuel: fuelTotal,
+        totalConsumed,
+        progress,
+        consumedStr: totalConsumed.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
+        warning: progress > 90
+      };
+    });
+  }, [costCenters, orders, fuelEntries]);
+
   // Fluxo de Caixa (6 Meses)
   const cashFlowData = React.useMemo(() => {
     const months = [];
@@ -77,7 +115,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const monthLabel = d.toLocaleString('pt-BR', { month: 'short' });
       months.push({
-        name: monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1, 3),
+        name: monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1, 4), // Ex: Jan, Fev...
+        maintenance: 0,
+        fuel: 0,
         total: 0,
         monthIdx: d.getMonth(),
         year: d.getFullYear()
@@ -85,17 +125,34 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
     }
 
     orders.forEach(o => {
-      if (!o.openedAt) return;
-      const date = new Date(o.openedAt);
+      let rawDate = o.openedAt || o.createdAt;
+      if (!rawDate) return;
+
+      // Sanitizar data para formato ISO caso venha com espaço do postgres
+      const sanitizedDate = rawDate.includes(' ') ? rawDate.replace(' ', 'T') : rawDate;
+      const date = new Date(sanitizedDate);
+      if (isNaN(date.getTime())) return;
+
       const mIdx = months.findIndex(m => m.monthIdx === date.getMonth() && m.year === date.getFullYear());
-      if (mIdx !== -1) months[mIdx].total += (o.costValue || 0);
+      if (mIdx !== -1) {
+        const val = Number(o.costValue) || 0;
+        months[mIdx].maintenance += val;
+        months[mIdx].total += val;
+      }
     });
 
     fuelEntries.forEach(f => {
       if (!f.date) return;
-      const date = new Date(f.date);
+      const sanitizedDate = f.date.includes(' ') ? f.date.replace(' ', 'T') : f.date;
+      const date = new Date(sanitizedDate);
+      if (isNaN(date.getTime())) return;
+
       const mIdx = months.findIndex(m => m.monthIdx === date.getMonth() && m.year === date.getFullYear());
-      if (mIdx !== -1) months[mIdx].total += f.totalValue;
+      if (mIdx !== -1) {
+        const val = Number(f.totalValue) || 0;
+        months[mIdx].fuel += val;
+        months[mIdx].total += val;
+      }
     });
 
     return months;
@@ -196,15 +253,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
             </div>
           </div>
 
-          <div className="h-[250px] w-full">
+          <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={cashFlowData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#1754cf" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#1754cf" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+              <BarChart data={cashFlowData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.1} />
                 <XAxis
                   dataKey="name"
@@ -219,6 +270,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
                   tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }}
                 />
                 <Tooltip
+                  cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
                   contentStyle={{
                     backgroundColor: 'rgba(15, 23, 42, 0.9)',
                     border: 'none',
@@ -230,15 +282,29 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
                   itemStyle={{ color: '#fff' }}
                   formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR')}`}
                 />
-                <Area
-                  type="monotone"
-                  dataKey="total"
-                  stroke="#1754cf"
-                  strokeWidth={4}
-                  fillOpacity={1}
-                  fill="url(#colorTotal)"
+                <Legend
+                  verticalAlign="top"
+                  align="right"
+                  iconType="circle"
+                  wrapperStyle={{ paddingBottom: '20px', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}
                 />
-              </AreaChart>
+                <Bar
+                  dataKey="maintenance"
+                  name="Manutenção"
+                  stackId="a"
+                  fill="#FF5100"
+                  radius={[0, 0, 0, 0]}
+                  barSize={40}
+                />
+                <Bar
+                  dataKey="fuel"
+                  name="Combustível"
+                  stackId="a"
+                  fill="#0088FF"
+                  radius={[6, 6, 0, 0]}
+                  barSize={40}
+                />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </section>
@@ -250,65 +316,94 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
             <button onClick={() => onAction(AppScreen.COST_CENTERS)} className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline px-4 py-2 bg-primary/10 rounded-xl">Ver Detalhes</button>
           </div>
 
-          <div className="h-[300px] w-full mt-4">
+          <div className="h-[450px] w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={costCenters}
-                margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
+                data={enrichedCostCenters}
+                layout="vertical"
+                margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+                barGap={-40}
               >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.1} />
-                <XAxis
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#334155" opacity={0.1} />
+                <XAxis type="number" hide />
+                <YAxis
                   dataKey="name"
+                  type="category"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 10, fontWeight: 800, fill: '#64748b' }}
-                  interval={0}
+                  tick={{ fontSize: 11, fontWeight: 900, fill: '#fff' }}
+                  width={90}
                 />
-                <YAxis hide />
                 <Tooltip
-                  cursor={{ fill: 'rgba(59, 130, 246, 0.05)' }}
+                  cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
                   contentStyle={{
-                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '10px',
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '16px',
+                    fontSize: '12px',
                     fontWeight: 'bold',
                     color: '#fff',
-                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
                   }}
                   itemStyle={{ color: '#fff' }}
                   formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR')}`}
                 />
-                <Bar
-                  dataKey="consumedValue"
-                  name="Gasto Atual"
-                  fill="#1754cf"
-                  radius={[4, 4, 0, 0]}
-                  barSize={32}
+                <Legend
+                  verticalAlign="top"
+                  align="right"
+                  iconType="circle"
+                  wrapperStyle={{ paddingBottom: '30px', fontSize: '11px', fontWeight: '900', textTransform: 'uppercase' }}
                 />
                 <Bar
                   dataKey="budget"
                   name="Orçamento Liberado"
-                  fill="#10b981"
-                  opacity={0.3}
-                  radius={[4, 4, 0, 0]}
-                  barSize={32}
+                  fill="#CCFF00"
+                  opacity={0.2}
+                  radius={[0, 20, 20, 0]}
+                  barSize={40}
+                  isAnimationActive={false}
+                />
+                <Bar
+                  dataKey="maintenance"
+                  name="Manutenção"
+                  stackId="a"
+                  fill="#FF5100"
+                  barSize={40}
+                />
+                <Bar
+                  dataKey="fuel"
+                  name="Combustível"
+                  stackId="a"
+                  fill="#0088FF"
+                  radius={[0, 20, 20, 0]}
+                  barSize={40}
                 />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
-            {costCenters.map((cc) => (
-              <div key={cc.id} className="bg-slate-50 dark:bg-background-dark/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+            {enrichedCostCenters.map((cc) => (
+              <div key={cc.id} className="bg-slate-50 dark:bg-card-dark p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
                 <div className="flex justify-between items-start mb-2">
                   <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{cc.id}</span>
-                  <span className={`text-[10px] font-black italic ${cc.warning ? 'text-accent-error' : 'text-primary'}`}>{cc.progress}%</span>
+                  <span className={`text-[10px] font-black italic ${cc.warning ? 'text-accent-error' : 'text-[#10b981]'}`}>{cc.progress}%</span>
                 </div>
-                <h3 className="text-[11px] font-black uppercase text-slate-700 dark:text-slate-200 truncate mb-2">{cc.name}</h3>
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-black italic text-slate-900 dark:text-white">R$ {cc.consumedStr}</span>
-                  <span className="text-[8px] font-bold text-slate-500">de R$ {cc.budget.toLocaleString('pt-BR')}</span>
+                <h3 className="text-[11px] font-black uppercase text-slate-700 dark:text-slate-200 truncate mb-3">{cc.name}</h3>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-[9px] font-bold">
+                    <span className="text-slate-500 uppercase">Manutenção:</span>
+                    <span className="text-[#FF4D00]">R$ {cc.maintenance.toLocaleString('pt-BR')}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[9px] font-bold">
+                    <span className="text-slate-500 uppercase">Combustível:</span>
+                    <span className="text-[#00A2FF]">R$ {cc.fuel.toLocaleString('pt-BR')}</span>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                    <span className="text-[10px] font-black italic text-slate-900 dark:text-white">R$ {cc.consumedStr}</span>
+                    <span className="text-[8px] font-bold text-slate-500">Limite: R$ {cc.budget.toLocaleString('pt-BR')}</span>
+                  </div>
                 </div>
               </div>
             ))}

@@ -113,10 +113,12 @@ const App: React.FC = () => {
           description: o.description || '',
           costCenter: o.cost_center || 'Geral',
           openedAt: o.opened_at,
+          createdAt: o.created_at,
           isPaid: o.is_paid,
           costValue: Number(o.cost) || 0,
           invoiceUrl: o.invoice_url,
-          quoteUrl: o.quote_url
+          quoteUrl: o.quote_url,
+          previousPreventiveKm: o.previous_preventive_km
         }));
         setOrders(mappedOrders);
       }
@@ -136,6 +138,8 @@ const App: React.FC = () => {
             quantity: Number(f.quantity),
             unitPrice: Number(f.total_value) / Number(f.quantity),
             totalValue: Number(f.total_value),
+            km: f.km,
+            supplier: f.station,
             invoiceUrl: ''
           };
         });
@@ -237,8 +241,49 @@ const App: React.FC = () => {
     }
   };
 
-  const handleAddFuelEntry = (entry: FuelEntryData) => {
-    setFuelEntries(prev => [entry, ...prev]);
+  const handleAddFuelEntry = async (entry: FuelEntryData) => {
+    try {
+      // 1. Achar o ID do veículo pela placa
+      const vehicle = vehicles.find(v => v.plate === entry.plate);
+
+      // 2. Salvar no Supabase
+      const { data, error } = await supabase
+        .from('fuel_entries')
+        .insert({
+          vehicle_id: vehicle?.id,
+          plate: entry.plate,
+          driver: entry.driver,
+          date: entry.date.split(' ')[0], // Apenas a data YYYY-MM-DD
+          fuel_type: entry.item,
+          quantity: entry.quantity,
+          total_value: entry.totalValue,
+          km: entry.km,
+          station: entry.supplier
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // 3. Se informou KM, atualiza o veículo
+      if (entry.km && vehicle) {
+        await updateVehicleKm(vehicle.id, entry.km);
+      }
+
+      // 4. Atualizar estado local com o ID real retornado do banco
+      if (data) {
+        const savedEntry: FuelEntryData = {
+          ...entry,
+          id: data.id
+        };
+        setFuelEntries(prev => [savedEntry, ...prev]);
+      }
+    } catch (err) {
+      console.error("Erro ao salvar abastecimento:", err);
+      alert("Erro ao salvar abastecimento no banco de dados.");
+      // Fallback para estado local para não travar o usuário
+      setFuelEntries(prev => [entry, ...prev]);
+    }
   };
 
   const handleStartShift = async (shiftData: any) => {
@@ -367,7 +412,7 @@ const App: React.FC = () => {
       case AppScreen.SHIFT_END:
         return <ShiftEnd onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} />;
       case AppScreen.OS_CONTROL:
-        return <OSControl orders={filteredOrders} setOrders={setOrders} onAction={(screen) => setCurrentScreen(screen)} isAdmin={currentUser?.role === 'ADMIN'} />;
+        return <OSControl orders={filteredOrders} setOrders={setOrders} setVehicles={setVehicles} onAction={(screen) => setCurrentScreen(screen)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.OS_CREATE:
         return <OSCreate
           vehicles={filteredVehicles}

@@ -63,19 +63,27 @@ const OSCreate: React.FC<OSCreateProps> = ({ onBack, vehicles, setVehicles, setO
     setSendingEmail(true);
 
     try {
-      const openedAt = `${date.split('-').reverse().join('/')} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+      // Usar ISO string para o banco e formato legível para o estado local
+      const now = new Date();
+      const openedAtISO = now.toISOString();
+      const displayOpenedAt = `${date.split('-').reverse().join('/')} ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+
+      const newId = crypto.randomUUID();
 
       const osDataToInsert = {
+        id: newId,
+        vehicle_id: selectedVehicle.id,
         plate: selectedVehicle.plate,
         description: description,
         type: type,
         status: 'Aberta',
         priority: priority,
         cost_center: userCostCenter || (selectedVehicle.costCenter || 'N/A'),
-        opened_at: openedAt,
+        opened_at: openedAtISO,
         is_paid: false,
         cost: value ? parseFloat(value) : 0,
-        invoice_url: invoicePreview || ''
+        invoice_url: invoicePreview || '',
+        previous_preventive_km: type === 'Preventiva' ? (selectedVehicle.lastPreventiveKm || 0) : null
       };
 
       const { data, error } = await supabase
@@ -83,7 +91,10 @@ const OSCreate: React.FC<OSCreateProps> = ({ onBack, vehicles, setVehicles, setO
         .insert([osDataToInsert])
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro Supabase na inserção:", error);
+        throw error;
+      }
 
       const savedOS = data[0];
       const newOS: OSDetail = {
@@ -97,7 +108,7 @@ const OSCreate: React.FC<OSCreateProps> = ({ onBack, vehicles, setVehicles, setO
         mechanic: savedOS.mechanic || '--',
         description: savedOS.description,
         costCenter: savedOS.cost_center,
-        openedAt: savedOS.opened_at,
+        openedAt: displayOpenedAt,
         isPaid: savedOS.is_paid,
         costValue: Number(savedOS.cost),
         invoiceUrl: savedOS.invoice_url
@@ -125,15 +136,15 @@ const OSCreate: React.FC<OSCreateProps> = ({ onBack, vehicles, setVehicles, setO
         if (selectedVehicle.responsibleEmail) {
           const diffKm = selectedVehicle.km - (selectedVehicle.lastPreventiveKm || 0);
           await generatePreventiveEmailBody(selectedVehicle, diffKm);
-          alert(`ORÇAMENTO PREVENTIVO ENVIADO!\n\nE-mail disparado para: ${selectedVehicle.responsibleEmail}\nO alerta de 10.000 km foi resetado.`);
+          alert(`ORÇAMENTO PREVENTIVO ENVIADO!\n\nE-mail disparado para: ${selectedVehicle.responsibleEmail}\nO alerta de manutenção foi resetado.`);
         }
       }
 
       setOrders(prev => [newOS, ...prev]);
       onBack();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao salvar OS:", error);
-      alert("Erro ao salvar Ordem de Serviço no banco de dados.");
+      alert(`Erro ao salvar Ordem de Serviço: ${error.message || 'Erro inesperado'}`);
     } finally {
       setSendingEmail(false);
     }

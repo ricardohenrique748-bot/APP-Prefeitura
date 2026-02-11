@@ -7,10 +7,11 @@ interface OSControlProps {
   onAction: (screen: AppScreen) => void;
   orders: OSDetail[];
   setOrders: React.Dispatch<React.SetStateAction<OSDetail[]>>;
+  setVehicles: React.Dispatch<React.SetStateAction<any[]>>;
   isAdmin?: boolean;
 }
 
-const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders, isAdmin = false }) => {
+const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders, setVehicles, isAdmin = false }) => {
   const [activeFilter, setActiveFilter] = useState('Todas');
   const [selectedOSId, setSelectedOSId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -35,13 +36,38 @@ const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders, isAd
     fetchQuotes();
   }, [selectedOSId]);
 
-  const handleTogglePayment = (osId: string) => {
-    setOrders(prev => prev.map(os =>
-      os.id === osId ? { ...os, isPaid: !os.isPaid } : os
+  const handleTogglePayment = async (osId: string) => {
+    const os = orders.find(o => o.id === osId);
+    if (!os) return;
+
+    const newPaidStatus = !os.isPaid;
+
+    const { error } = await supabase
+      .from('service_orders')
+      .update({ is_paid: newPaidStatus })
+      .eq('id', osId);
+
+    if (error) {
+      alert("Erro ao atualizar pagamento no banco.");
+      return;
+    }
+
+    setOrders(prev => prev.map(o =>
+      o.id === osId ? { ...o, isPaid: newPaidStatus } : o
     ));
   };
 
-  const handleFinishOS = (osId: string) => {
+  const handleFinishOS = async (osId: string) => {
+    const { error } = await supabase
+      .from('service_orders')
+      .update({ status: 'Finalizada', priority: 'Baixa' })
+      .eq('id', osId);
+
+    if (error) {
+      alert("Erro ao finalizar OS no banco.");
+      return;
+    }
+
     setOrders(prev => prev.map(os =>
       os.id === osId ? { ...os, status: 'Finalizada', priority: 'Baixa' } : os
     ));
@@ -60,20 +86,87 @@ const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders, isAd
     setEditForm({});
   };
 
-  const saveEditing = () => {
-    if (selectedOSId) {
-      setOrders(prev => prev.map(os =>
-        os.id === selectedOSId ? { ...os, ...editForm } as OSDetail : os
-      ));
-      setIsEditing(false);
+  const saveEditing = async () => {
+    if (selectedOSId && editForm && selectedOS) {
+      try {
+        // Se mudou para CANCELADA e era preventiva, faz rollback
+        if (editForm.status === 'Cancelada' && selectedOS.status !== 'Cancelada' &&
+          selectedOS.taskType === 'Preventiva' && selectedOS.previousPreventiveKm !== undefined) {
+
+          const { error: vError } = await supabase
+            .from('vehicles')
+            .update({ last_preventive_km: selectedOS.previousPreventiveKm })
+            .eq('plate', selectedOS.plate);
+
+          if (!vError) {
+            setVehicles(prev => prev.map(v =>
+              v.plate === selectedOS.plate
+                ? { ...v, lastPreventiveKm: selectedOS.previousPreventiveKm }
+                : v
+            ));
+          }
+        }
+
+        const { error } = await supabase
+          .from('service_orders')
+          .update({
+            plate: editForm.plate?.toUpperCase(),
+            description: editForm.description,
+            type: editForm.taskType,
+            status: editForm.status,
+            priority: editForm.priority,
+            cost: editForm.costValue,
+            mechanic: editForm.mechanic,
+            cost_center: editForm.costCenter
+          })
+          .eq('id', selectedOSId);
+
+        if (error) throw error;
+
+        setOrders(prev => prev.map(os =>
+          os.id === selectedOSId ? { ...os, ...editForm } as OSDetail : os
+        ));
+        setIsEditing(false);
+      } catch (err) {
+        console.error("Erro ao salvar edição:", err);
+        alert("Erro ao salvar alterações no banco de dados.");
+      }
     }
   };
 
-  const confirmDelete = () => {
-    if (selectedOSId) {
-      setOrders(prev => prev.filter(os => os.id !== selectedOSId));
-      setSelectedOSId(null);
-      setShowDeleteConfirm(false);
+  const confirmDelete = async () => {
+    if (selectedOSId && selectedOS) {
+      try {
+        // Se for PREVENTIVA, precisamos verificar se devemos fazer o rollback do KM
+        if (selectedOS.taskType === 'Preventiva' && selectedOS.previousPreventiveKm !== undefined) {
+          const { error: vError } = await supabase
+            .from('vehicles')
+            .update({ last_preventive_km: selectedOS.previousPreventiveKm })
+            .eq('plate', selectedOS.plate);
+
+          if (!vError) {
+            setVehicles(prev => prev.map(v =>
+              v.plate === selectedOS.plate
+                ? { ...v, lastPreventiveKm: selectedOS.previousPreventiveKm }
+                : v
+            ));
+          }
+        }
+
+        const { error } = await supabase
+          .from('service_orders')
+          .delete()
+          .eq('id', selectedOSId);
+
+        if (error) throw error;
+
+        setOrders(prev => prev.filter(os => os.id !== selectedOSId));
+        setSelectedOSId(null);
+        setShowDeleteConfirm(false);
+      } catch (err) {
+        console.error("Erro ao excluir OS:", err);
+        alert("Erro ao excluir do banco de dados.");
+      }
     }
   };
 
@@ -106,6 +199,7 @@ const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders, isAd
       case 'Crítica': return 'bg-red-500/10 text-red-500';
       case 'Aberta': return 'bg-blue-500/10 text-blue-500';
       case 'Finalizada': return 'bg-emerald-500/10 text-emerald-500';
+      case 'Cancelada': return 'bg-slate-500/10 text-slate-500 line-through';
       default: return 'bg-slate-500/10 text-slate-500';
     }
   };
@@ -263,7 +357,7 @@ const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders, isAd
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
               {/* Left Column (Details) */}
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   <div className="bg-slate-50 dark:bg-background-dark p-3 rounded-xl border border-slate-100 dark:border-slate-800">
                     <p className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Tipo de Manutenção</p>
                     {isEditing ? (
@@ -298,6 +392,23 @@ const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders, isAd
                         <span className={`size-2.5 rounded-full ${selectedOS.priority === 'Crítica' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : selectedOS.priority === 'Alta' ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-blue-500'}`}></span>
                         <p className="text-[10px] font-black uppercase">{selectedOS.priority}</p>
                       </div>
+                    )}
+                  </div>
+                  <div className="bg-slate-50 dark:bg-background-dark p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Status</p>
+                    {isEditing ? (
+                      <select
+                        value={editForm.status}
+                        onChange={e => setEditForm({ ...editForm, status: e.target.value })}
+                        className="w-full bg-transparent text-[10px] font-bold outline-none"
+                      >
+                        <option value="Aberta">Aberta</option>
+                        <option value="Em Execução">Em Execução</option>
+                        <option value="Finalizada">Finalizada</option>
+                        <option value="Cancelada">Cancelada</option>
+                      </select>
+                    ) : (
+                      <p className="text-[10px] font-bold uppercase tracking-tighter">{selectedOS.status}</p>
                     )}
                   </div>
                 </div>
@@ -447,68 +558,65 @@ const OSControl: React.FC<OSControlProps> = ({ onAction, orders, setOrders, isAd
                 </div>
               </div>
             </div>
+
+            {/* Received Quotes Section */}
+            {receivedQuotes.length > 0 && (
+              <section className="space-y-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Orçamentos Recebidos ({receivedQuotes.length})</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {receivedQuotes.map((quote) => (
+                    <div key={quote.id} className="bg-white dark:bg-background-dark border border-slate-100 dark:border-slate-800 p-4 rounded-2xl flex justify-between items-center shadow-sm">
+                      <div>
+                        <p className="text-xs font-black uppercase text-slate-900 dark:text-white">{quote.supplier_name}</p>
+                        <p className="text-[9px] font-bold text-slate-500 tracking-wider">Prazo: {quote.deadline_days} dias • {new Date(quote.created_at).toLocaleDateString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-black text-primary">R$ {parseFloat(quote.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                        <button
+                          onClick={() => setEditForm({ ...editForm, costValue: parseFloat(quote.value) })}
+                          className="text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors underline"
+                        >
+                          Aplicar
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
-
-          {/* Received Quotes Section */}
-          {receivedQuotes.length > 0 && (
-            <section className="space-y-3 pt-6 border-t border-slate-100 dark:border-slate-800">
-              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Orçamentos Recebidos ({receivedQuotes.length})</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {receivedQuotes.map((quote) => (
-                  <div key={quote.id} className="bg-white dark:bg-background-dark border border-slate-100 dark:border-slate-800 p-4 rounded-2xl flex justify-between items-center shadow-sm">
-                    <div>
-                      <p className="text-xs font-black uppercase text-slate-900 dark:text-white">{quote.supplier_name}</p>
-                      <p className="text-[9px] font-bold text-slate-500 tracking-wider">Prazo: {quote.deadline_days} dias • {new Date(quote.created_at).toLocaleDateString()}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-black text-primary">R$ {parseFloat(quote.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                      <button
-                        onClick={() => setEditForm({ ...editForm, costValue: parseFloat(quote.value) })}
-                        className="text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-primary transition-colors underline"
-                      >
-                        Aplicar
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
         </div>
-      )
-      }
+      )}
 
-      {/* Delete Confirmation Overlay */}
-      {
-        showDeleteConfirm && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-8 animate-in fade-in duration-200" onClick={() => setShowDeleteConfirm(false)}>
-            <div className="bg-white dark:bg-card-dark rounded-3xl p-6 w-full max-w-xs text-center space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
-              <div className="size-16 bg-accent-error/10 text-accent-error rounded-full flex items-center justify-center mx-auto mb-2 animate-pulse">
-                <span className="material-symbols-outlined text-3xl font-black">delete_forever</span>
-              </div>
-              <div>
-                <h3 className="text-base font-black uppercase italic mb-1 tracking-tighter">Apagar esta OS?</h3>
-                <p className="text-[10px] text-slate-500 font-medium">Esta ação é permanente e removerá todos os anexos vinculados.</p>
-              </div>
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={confirmDelete}
-                  className="w-full h-12 bg-accent-error text-white font-black rounded-xl uppercase tracking-widest shadow-lg shadow-accent-error/20 text-xs hover:bg-accent-error/90"
-                >
-                  Sim, Excluir
-                </button>
-                <button onClick={() => setShowDeleteConfirm(false)} className="w-full h-10 text-slate-400 font-bold uppercase text-[9px] hover:text-slate-600">
-                  Voltar
-                </button>
-              </div>
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-8 animate-in fade-in duration-200" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="bg-white dark:bg-card-dark rounded-3xl p-6 w-full max-w-xs text-center space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="size-16 bg-accent-error/10 text-accent-error rounded-full flex items-center justify-center mx-auto mb-2 animate-pulse">
+              <span className="material-symbols-outlined text-3xl font-black">delete_forever</span>
+            </div>
+            <div>
+              <h3 className="text-base font-black uppercase italic mb-1 tracking-tighter">Apagar esta OS?</h3>
+              <p className="text-[10px] text-slate-500 font-medium">Esta ação é permanente e removerá todos os anexos vinculados.</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={confirmDelete}
+                className="w-full h-12 bg-accent-error text-white font-black rounded-xl uppercase tracking-widest shadow-lg shadow-accent-error/20 text-xs hover:bg-accent-error/90"
+              >
+                Sim, Excluir
+              </button>
+              <button onClick={() => setShowDeleteConfirm(false)} className="w-full h-10 text-slate-400 font-bold uppercase text-[9px] hover:text-slate-600">
+                Voltar
+              </button>
             </div>
           </div>
-        )
-      }
+        </div>
+      )}
 
       <div className="h-24 md:hidden"></div>
-    </div >
+    </div>
   );
 };
 
 export default OSControl;
+

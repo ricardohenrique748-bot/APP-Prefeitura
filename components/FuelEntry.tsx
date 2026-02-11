@@ -78,6 +78,7 @@ const FuelEntry: React.FC<FuelEntryProps> = ({ onBack, onSave, vehicles, supplie
       quantity: qty,
       unitPrice: price,
       totalValue: qty * price,
+      km: parseFloat(formData.km) || undefined,
       invoiceUrl: invoicePreview || undefined,
       supplier: formData.supplier
     };
