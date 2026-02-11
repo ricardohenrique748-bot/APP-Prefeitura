@@ -371,6 +371,7 @@ const App: React.FC = () => {
       case AppScreen.OS_CREATE:
         return <OSCreate
           vehicles={filteredVehicles}
+          setVehicles={setVehicles}
           setOrders={setOrders}
           onBack={() => setCurrentScreen(AppScreen.OS_CONTROL)}
           userCostCenter={currentUser?.role !== 'ADMIN' ? currentUser?.costCenter : undefined}

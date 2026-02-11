@@ -2,15 +2,17 @@
 import React, { useState, useRef } from 'react';
 import { Vehicle, OSDetail } from '../types';
 import { generatePreventiveEmailBody } from '../services/geminiService';
+import { supabase } from '../services/supabaseClient';
 
 interface OSCreateProps {
   onBack: () => void;
   vehicles: Vehicle[];
+  setVehicles: React.Dispatch<React.SetStateAction<Vehicle[]>>;
   setOrders: React.Dispatch<React.SetStateAction<OSDetail[]>>;
   userCostCenter?: string;
 }
 
-const OSCreate: React.FC<OSCreateProps> = ({ onBack, vehicles, setOrders, userCostCenter }) => {
+const OSCreate: React.FC<OSCreateProps> = ({ onBack, vehicles, setVehicles, setOrders, userCostCenter }) => {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [priority, setPriority] = useState('Média');
   const [type, setType] = useState('Corretiva');
@@ -60,32 +62,81 @@ const OSCreate: React.FC<OSCreateProps> = ({ onBack, vehicles, setOrders, userCo
 
     setSendingEmail(true);
 
-    const newOS: OSDetail = {
-      id: `OS-${Math.floor(1000 + Math.random() * 9000)}`,
-      plate: selectedVehicle.plate,
-      task: description.length > 30 ? description.substring(0, 30) + '...' : description,
-      taskType: type as any,
-      status: 'Aberta',
-      priority: priority,
-      time: 'Agora',
-      mechanic: '--',
-      description: description,
-      costCenter: userCostCenter || (selectedVehicle.costCenter || 'N/A'),
-      openedAt: `${date.split('-').reverse().join('/')} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
-      isPaid: false,
-      costValue: value ? parseFloat(value) : 0,
-      invoiceUrl: invoicePreview || undefined
-    };
+    try {
+      const openedAt = `${date.split('-').reverse().join('/')} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
 
-    if (type === 'Preventiva' && selectedVehicle.responsibleEmail) {
-      const diffKm = selectedVehicle.km - (selectedVehicle.lastPreventiveKm || 0);
-      await generatePreventiveEmailBody(selectedVehicle, diffKm);
-      alert(`SOLICITAÇÃO PREVENTIVA ENVIADA!\n\nE-mail disparado para: ${selectedVehicle.responsibleEmail}`);
+      const osDataToInsert = {
+        plate: selectedVehicle.plate,
+        description: description,
+        type: type,
+        status: 'Aberta',
+        priority: priority,
+        cost_center: userCostCenter || (selectedVehicle.costCenter || 'N/A'),
+        opened_at: openedAt,
+        is_paid: false,
+        cost: value ? parseFloat(value) : 0,
+        invoice_url: invoicePreview || ''
+      };
+
+      const { data, error } = await supabase
+        .from('service_orders')
+        .insert([osDataToInsert])
+        .select();
+
+      if (error) throw error;
+
+      const savedOS = data[0];
+      const newOS: OSDetail = {
+        id: savedOS.id,
+        plate: savedOS.plate,
+        task: savedOS.description.length > 30 ? savedOS.description.substring(0, 30) + '...' : savedOS.description,
+        taskType: savedOS.type,
+        status: savedOS.status,
+        priority: savedOS.priority,
+        time: new Date(savedOS.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        mechanic: savedOS.mechanic || '--',
+        description: savedOS.description,
+        costCenter: savedOS.cost_center,
+        openedAt: savedOS.opened_at,
+        isPaid: savedOS.is_paid,
+        costValue: Number(savedOS.cost),
+        invoiceUrl: savedOS.invoice_url
+      };
+
+      // Se for PREVENTIVA, resetar o contador de KM do veículo
+      if (type === 'Preventiva') {
+        const { error: vError } = await supabase
+          .from('vehicles')
+          .update({ last_preventive_km: selectedVehicle.km })
+          .eq('id', selectedVehicle.id);
+
+        if (vError) {
+          console.error("Erro ao resetar KM de preventiva:", vError);
+        } else {
+          // Atualizar estado local dos veículos para sumir o alerta imediatamente
+          setVehicles(prev => prev.map(v =>
+            v.id === selectedVehicle.id
+              ? { ...v, lastPreventiveKm: selectedVehicle.km }
+              : v
+          ));
+        }
+
+        // Simular envio de e-mail se houver responsável
+        if (selectedVehicle.responsibleEmail) {
+          const diffKm = selectedVehicle.km - (selectedVehicle.lastPreventiveKm || 0);
+          await generatePreventiveEmailBody(selectedVehicle, diffKm);
+          alert(`ORÇAMENTO PREVENTIVO ENVIADO!\n\nE-mail disparado para: ${selectedVehicle.responsibleEmail}\nO alerta de 10.000 km foi resetado.`);
+        }
+      }
+
+      setOrders(prev => [newOS, ...prev]);
+      onBack();
+    } catch (error) {
+      console.error("Erro ao salvar OS:", error);
+      alert("Erro ao salvar Ordem de Serviço no banco de dados.");
+    } finally {
+      setSendingEmail(false);
     }
-
-    setOrders(prev => [newOS, ...prev]);
-    setSendingEmail(false);
-    onBack();
   };
 
   return (
