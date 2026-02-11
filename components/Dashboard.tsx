@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, AreaChart, Area } from 'recharts';
 import { AppScreen, Vehicle, OSDetail, FuelEntryData } from '../types';
 
 interface DashboardProps {
@@ -69,6 +69,40 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
     { name: 'INATIVOS', value: counts.INACTIVE, color: '#334155' },
   ];
 
+  // Fluxo de Caixa (6 Meses)
+  const cashFlowData = React.useMemo(() => {
+    const months = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthLabel = d.toLocaleString('pt-BR', { month: 'short' });
+      months.push({
+        name: monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1, 3),
+        total: 0,
+        monthIdx: d.getMonth(),
+        year: d.getFullYear()
+      });
+    }
+
+    orders.forEach(o => {
+      if (!o.openedAt) return;
+      const date = new Date(o.openedAt);
+      const mIdx = months.findIndex(m => m.monthIdx === date.getMonth() && m.year === date.getFullYear());
+      if (mIdx !== -1) months[mIdx].total += (o.costValue || 0);
+    });
+
+    fuelEntries.forEach(f => {
+      if (!f.date) return;
+      const date = new Date(f.date);
+      const mIdx = months.findIndex(m => m.monthIdx === date.getMonth() && m.year === date.getFullYear());
+      if (mIdx !== -1) months[mIdx].total += f.totalValue;
+    });
+
+    return months;
+  }, [orders, fuelEntries]);
+
+  const totalInvestment = cashFlowData.reduce((acc, curr) => acc + curr.total, 0);
+
   return (
     <div className="p-4 md:p-8 space-y-4 md:space-y-8 bg-background-light dark:bg-background-dark min-h-screen transition-colors duration-300">
 
@@ -116,49 +150,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
       </section>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
-        {/* Maintenance Alerts */}
-        {maintenanceAlerts.length > 0 && (
-          <section className="space-y-3 md:space-y-5">
-            <div className="flex items-center gap-2 px-1">
-              <span className="material-symbols-outlined text-amber-500 animate-pulse md:text-2xl">warning</span>
-              <h2 className="text-xs md:text-sm font-black uppercase tracking-widest text-slate-500 dark:text-[#5c6d8c]">Alertas de Preventiva</h2>
-            </div>
-            <div className="grid gap-3 md:gap-4">
-              {maintenanceAlerts.map(alert => (
-                <div key={alert.id} className={`p-4 md:p-5 rounded-xl border-l-[6px] shadow-sm bg-white dark:bg-card-dark border dark:border-slate-800 ${alert.maintenanceStatus === 'OVERDUE' ? 'border-l-accent-error' : 'border-l-amber-400'}`}>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-lg md:text-xl font-black italic text-slate-900 dark:text-white">{alert.plate}</h3>
-                      <p className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">{alert.model}</p>
-                    </div>
-                    <div className={`px-2 py-1 rounded-md text-[9px] md:text-[10px] font-black uppercase tracking-widest text-white ${alert.maintenanceStatus === 'OVERDUE' ? 'bg-accent-error' : 'bg-amber-400'}`}>
-                      {alert.maintenanceStatus === 'OVERDUE' ? 'VENCIDA' : 'PRÓXIMA'}
-                    </div>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between">
-                    <p className="text-xs md:text-sm font-bold text-slate-600 dark:text-slate-300">
-                      {alert.maintenanceStatus === 'OVERDUE'
-                        ? <span>Passou <span className="text-accent-error">{Math.abs(alert.remainingKm)} km</span></span>
-                        : <span>Faltam <span className="text-amber-500">{alert.remainingKm} km</span></span>
-                      }
-                    </p>
-                    <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase">Ref: {alert.lastPreventiveKm}km</p>
-                  </div>
-                  {/* Progress Bar */}
-                  <div className="mt-2 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${alert.maintenanceStatus === 'OVERDUE' ? 'bg-accent-error' : 'bg-amber-400'}`}
-                      style={{ width: `${Math.min(100, (alert.kmSinceLast / alert.interval) * 100)}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
         {/* Fleet Status Chart */}
-        <section className={`bg-white dark:bg-card-dark rounded-2xl p-5 md:p-8 border border-slate-200 dark:border-slate-800/50 shadow-md ${maintenanceAlerts.length === 0 ? 'md:col-span-2' : ''}`}>
+        <section className="bg-white dark:bg-card-dark rounded-2xl p-5 md:p-8 border border-slate-200 dark:border-slate-800/50 shadow-md md:col-span-2">
           <h2 className="text-base md:text-lg font-black italic tracking-tighter uppercase text-slate-900 dark:text-white mb-5">Status da Frota</h2>
           <div className="flex items-center justify-center md:justify-start gap-6 md:gap-12">
             <div className="relative size-32 md:size-48 flex-shrink-0">
@@ -190,37 +183,135 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
           </div>
         </section>
 
+        {/* Fluxo de Caixa (6 Meses) */}
+        <section className="bg-white dark:bg-card-dark rounded-2xl p-6 md:p-8 border border-slate-200 dark:border-slate-800/50 shadow-md">
+          <div className="flex justify-between items-start mb-8">
+            <div>
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1 leading-none">Fluxo de Caixa (6 Meses)</p>
+              <h2 className="text-xl md:text-2xl font-black italic text-slate-900 dark:text-white uppercase tracking-tighter">Manutenção & Combustível</h2>
+            </div>
+            <div className="text-right">
+              <p className="text-xl md:text-3xl font-black text-[#1754cf] italic leading-none">R$ {totalInvestment.toLocaleString('pt-BR')}</p>
+              <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Investimento Total Acumulado</p>
+            </div>
+          </div>
+
+          <div className="h-[250px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={cashFlowData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#1754cf" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#1754cf" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.1} />
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }}
+                  dy={10}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    color: '#fff'
+                  }}
+                  itemStyle={{ color: '#fff' }}
+                  formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR')}`}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="total"
+                  stroke="#1754cf"
+                  strokeWidth={4}
+                  fillOpacity={1}
+                  fill="url(#colorTotal)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+
         {/* Expenses by Cost Center */}
         <section className="bg-white dark:bg-card-dark rounded-2xl p-5 md:p-8 border border-slate-200 dark:border-slate-800/50 shadow-md">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-8">
             <h2 className="text-base md:text-lg font-black italic tracking-tighter uppercase text-slate-900 dark:text-white">Gasto por Centro de Custo</h2>
-            <button onClick={() => onAction(AppScreen.COST_CENTERS)} className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline">Ver Detalhes</button>
+            <button onClick={() => onAction(AppScreen.COST_CENTERS)} className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline px-4 py-2 bg-primary/10 rounded-xl">Ver Detalhes</button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+          <div className="h-[300px] w-full mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={costCenters}
+                margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.1} />
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fontWeight: 800, fill: '#64748b' }}
+                  interval={0}
+                />
+                <YAxis hide />
+                <Tooltip
+                  cursor={{ fill: 'rgba(59, 130, 246, 0.05)' }}
+                  contentStyle={{
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    color: '#fff',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                  }}
+                  itemStyle={{ color: '#fff' }}
+                  formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR')}`}
+                />
+                <Bar
+                  dataKey="consumedValue"
+                  name="Gasto Atual"
+                  fill="#1754cf"
+                  radius={[4, 4, 0, 0]}
+                  barSize={32}
+                />
+                <Bar
+                  dataKey="budget"
+                  name="Orçamento Liberado"
+                  fill="#10b981"
+                  opacity={0.3}
+                  radius={[4, 4, 0, 0]}
+                  barSize={32}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
             {costCenters.map((cc) => (
-              <div key={cc.id} className="space-y-3">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{cc.id}</p>
-                    <h3 className="text-xs font-black uppercase tracking-tight text-slate-700 dark:text-slate-200 truncate max-w-[150px]">{cc.name}</h3>
-                  </div>
-                  <span className="text-xs font-black italic text-slate-900 dark:text-white">R$ {cc.consumedStr}</span>
+              <div key={cc.id} className="bg-slate-50 dark:bg-background-dark/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{cc.id}</span>
+                  <span className={`text-[10px] font-black italic ${cc.warning ? 'text-accent-error' : 'text-primary'}`}>{cc.progress}%</span>
                 </div>
-                <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-1000 ${cc.warning ? 'bg-accent-error' : 'bg-primary'}`}
-                    style={{ width: `${cc.progress}%` }}
-                  ></div>
-                </div>
-                <div className="flex justify-between text-[8px] font-bold uppercase tracking-wider">
-                  <span className="text-slate-400">Utilizado: {cc.progress}%</span>
-                  <span className={cc.warning ? 'text-accent-error' : 'text-slate-500'}>Limite: R$ {cc.budget.toLocaleString('pt-BR')}</span>
+                <h3 className="text-[11px] font-black uppercase text-slate-700 dark:text-slate-200 truncate mb-2">{cc.name}</h3>
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-black italic text-slate-900 dark:text-white">R$ {cc.consumedStr}</span>
+                  <span className="text-[8px] font-bold text-slate-500">de R$ {cc.budget.toLocaleString('pt-BR')}</span>
                 </div>
               </div>
             ))}
-            {costCenters.length === 0 && (
-              <p className="text-center col-span-full py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Nenhum centro de custo carregado</p>
-            )}
           </div>
         </section>
       </div>

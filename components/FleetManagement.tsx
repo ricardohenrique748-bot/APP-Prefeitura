@@ -33,6 +33,37 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
     responsibleEmail: ''
   });
 
+  // Helper para determinar o intervalo de preventiva por tipo
+  const getPreventiveInterval = (type: string) => {
+    switch (type) {
+      case 'Moto': return 1000;
+      case 'Carro Leve':
+      case 'Ambulância':
+        return 10000;
+      default: return 10000; // Padrão para Caminhões e outros
+    }
+  };
+
+  // Cálculo de Alertas de Preventiva
+  const maintenanceAlerts = vehicles.map(v => {
+    const interval = getPreventiveInterval(v.type);
+    const lastKm = v.lastPreventiveKm || 0;
+    const kmSinceLast = v.km - lastKm;
+    const remaining = interval - kmSinceLast;
+    const warningThreshold = v.type === 'Moto' ? 200 : 1000;
+
+    if (remaining <= warningThreshold) {
+      return {
+        ...v,
+        maintenanceStatus: remaining <= 0 ? 'OVERDUE' : 'WARNING',
+        remainingKm: remaining,
+        kmSinceLast,
+        interval
+      };
+    }
+    return null;
+  }).filter((v): v is NonNullable<typeof v> & { maintenanceStatus: string, remainingKm: number, kmSinceLast: number, interval: number } => v !== null);
+
   const filteredVehicles = vehicles.filter(v =>
     v.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
     v.model.toLowerCase().includes(searchTerm.toLowerCase())
@@ -79,7 +110,7 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
       type: formData.type,
       status: formData.status,
       km: parseInt(formData.km) || 0,
-      last_preventive_km: parseInt(formData.last_preventive_km) || 0,
+      last_preventive_km: parseInt(formData.lastPreventiveKm) || 0,
       cost_center: formData.costCenter
     };
 
@@ -105,8 +136,8 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
           km: data[0].km,
           lastPreventiveKm: data[0].last_preventive_km,
           costCenter: data[0].cost_center,
-          year: formData.year, // Mantido no estado local
-          responsibleEmail: formData.responsibleEmail // Mantido no estado local
+          year: formData.year,
+          responsibleEmail: formData.responsibleEmail
         };
         setVehicles([newVehicle, ...vehicles]);
       }
@@ -134,27 +165,21 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
 
   const handleDelete = async (id: string) => {
     try {
-      // Tenta excluir do Supabase
-      const { error, count } = await supabase
+      const { error } = await supabase
         .from('vehicles')
-        .delete({ count: 'exact' })
+        .delete()
         .eq('id', id);
 
       if (error) {
         console.error("Erro ao deletar veículo:", error);
-        alert(`Erro ao excluir: ${error.message}. Verifique se existem dependências.`);
+        alert(`Erro ao excluir: ${error.message}`);
         return;
       }
 
-      // Se chegamos aqui, removemos do estado local
       setVehicles(prev => prev.filter(v => v.id !== id));
       setShowDeleteConfirm(null);
-
-      // Feedback opicional
-      console.log(`Veículo com ID ${id} excluído com sucesso.`);
     } catch (err) {
       console.error("Erro inesperado:", err);
-      alert("Ocorreu um erro inesperado ao tentar excluir.");
     }
   };
 
@@ -206,6 +231,46 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
       </div>
 
       <div className="p-4 space-y-4">
+        {/* Alertas de Preventiva */}
+        {maintenanceAlerts.length > 0 && (
+          <div className="space-y-3 mb-6">
+            <div className="flex items-center gap-2 px-1">
+              <span className="material-symbols-outlined text-amber-500 animate-pulse text-lg">warning</span>
+              <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-[#5c6d8c]">Alertas de Preventiva</h2>
+            </div>
+            <div className="grid gap-3">
+              {maintenanceAlerts.map(alert => (
+                <div key={alert.id} className={`p-4 rounded-xl border-l-[6px] shadow-sm bg-white dark:bg-card-dark border dark:border-slate-800 ${alert.maintenanceStatus === 'OVERDUE' ? 'border-l-accent-error' : 'border-l-amber-400'}`}>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-base font-black italic text-slate-900 dark:text-white uppercase tracking-tighter leading-none mb-1">{alert.plate}</h3>
+                      <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{alert.model}</p>
+                    </div>
+                    <div className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest text-white ${alert.maintenanceStatus === 'OVERDUE' ? 'bg-accent-error' : 'bg-amber-400'}`}>
+                      {alert.maintenanceStatus === 'OVERDUE' ? 'VENCIDA' : 'PRÓXIMA'}
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between">
+                    <p className="text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                      {alert.maintenanceStatus === 'OVERDUE'
+                        ? <span>Passou <span className="text-accent-error font-black">{Math.abs(alert.remainingKm).toLocaleString()} km</span></span>
+                        : <span>Faltam <span className="text-amber-500 font-black">{alert.remainingKm.toLocaleString()} km</span></span>
+                      }
+                    </p>
+                    <p className="text-[8px] font-black text-slate-400 uppercase">Ref: {alert.lastPreventiveKm?.toLocaleString()}km</p>
+                  </div>
+                  <div className="mt-2 h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${alert.maintenanceStatus === 'OVERDUE' ? 'bg-accent-error' : 'bg-amber-400'}`}
+                      style={{ width: `${Math.min(100, (alert.kmSinceLast / alert.interval) * 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between px-1">
           <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Resultados ({filteredVehicles.length})</h3>
         </div>
@@ -312,11 +377,9 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Centro de Custo Responsável</label>
                 <div className="relative">
                   <select value={formData.costCenter} onChange={(e) => setFormData({ ...formData, costCenter: e.target.value })} className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary appearance-none">
-                    {costCenters.length > 0 ? costCenters.map(cc => (
+                    {costCenters.map(cc => (
                       <option key={cc.id} value={`${cc.id} - ${cc.name}`}>{cc.id} - {cc.name}</option>
-                    )) : (
-                      <option value="">Nenhum centro cadastrado</option>
-                    )}
+                    ))}
                   </select>
                   <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">expand_more</span>
                 </div>
