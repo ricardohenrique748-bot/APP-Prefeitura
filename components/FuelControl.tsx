@@ -11,20 +11,28 @@ interface FuelControlProps {
 const FuelControl: React.FC<FuelControlProps> = ({ onAction, fuelEntries, isAdmin = false }) => {
   const averageConsum = fuelEntries.length > 0 ? "2.4" : "0.0";
   const totalCost = fuelEntries.reduce((acc, curr) => acc + curr.totalValue, 0);
+  const totalLiters = fuelEntries.reduce((acc, curr) => acc + curr.quantity, 0);
 
   return (
     <div className="p-4 space-y-4 pb-24">
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white dark:bg-card-dark p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <p className="text-[9px] font-bold uppercase text-slate-500 mb-1">Consumo Médio</p>
-          <div className="flex items-baseline gap-1">
-            <span className="text-lg font-bold text-primary">{averageConsum}</span>
-            <span className="text-[9px] font-bold text-slate-400">km/l</span>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-white dark:bg-card-dark p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
+          <p className="text-[8px] font-bold uppercase text-slate-500 mb-0.5 truncate">Média</p>
+          <div className="flex items-baseline gap-0.5">
+            <span className="text-sm font-black text-primary">{averageConsum}</span>
+            <span className="text-[7px] font-bold text-slate-400">km/l</span>
           </div>
         </div>
-        <div className="bg-white dark:bg-card-dark p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <p className="text-[9px] font-bold uppercase text-slate-500 mb-1">Gasto Acumulado</p>
-          <span className="text-lg font-bold text-accent-success">{totalCost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+        <div className="bg-white dark:bg-card-dark p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
+          <p className="text-[8px] font-bold uppercase text-slate-500 mb-0.5 truncate">Total Litros</p>
+          <div className="flex items-baseline gap-0.5">
+            <span className="text-sm font-black text-blue-500">{totalLiters.toLocaleString('pt-BR')}</span>
+            <span className="text-[7px] font-bold text-slate-400">L</span>
+          </div>
+        </div>
+        <div className="bg-white dark:bg-card-dark p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
+          <p className="text-[8px] font-bold uppercase text-slate-500 mb-0.5 truncate">Gasto Total</p>
+          <span className="text-[11px] font-black text-accent-success tracking-tighter truncate">{totalCost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
         </div>
       </div>
 

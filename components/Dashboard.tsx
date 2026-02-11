@@ -8,9 +8,10 @@ interface DashboardProps {
   orders: OSDetail[];
   vehicles: Vehicle[];
   fuelEntries: FuelEntryData[];
+  costCenters: any[];
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelEntries }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelEntries, costCenters }) => {
   const osSummary = {
     total: orders.length,
     abertas: orders.filter(os => os.status !== 'Finalizada').length,
@@ -186,6 +187,40 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Expenses by Cost Center */}
+        <section className="bg-white dark:bg-card-dark rounded-2xl p-5 md:p-8 border border-slate-200 dark:border-slate-800/50 shadow-md">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-base md:text-lg font-black italic tracking-tighter uppercase text-slate-900 dark:text-white">Gasto por Centro de Custo</h2>
+            <button onClick={() => onAction(AppScreen.COST_CENTERS)} className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline">Ver Detalhes</button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {costCenters.map((cc) => (
+              <div key={cc.id} className="space-y-3">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{cc.id}</p>
+                    <h3 className="text-xs font-black uppercase tracking-tight text-slate-700 dark:text-slate-200 truncate max-w-[150px]">{cc.name}</h3>
+                  </div>
+                  <span className="text-xs font-black italic text-slate-900 dark:text-white">R$ {cc.consumedStr}</span>
+                </div>
+                <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-1000 ${cc.warning ? 'bg-accent-error' : 'bg-primary'}`}
+                    style={{ width: `${cc.progress}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-[8px] font-bold uppercase tracking-wider">
+                  <span className="text-slate-400">Utilizado: {cc.progress}%</span>
+                  <span className={cc.warning ? 'text-accent-error' : 'text-slate-500'}>Limite: R$ {cc.budget.toLocaleString('pt-BR')}</span>
+                </div>
+              </div>
+            ))}
+            {costCenters.length === 0 && (
+              <p className="text-center col-span-full py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Nenhum centro de custo carregado</p>
+            )}
           </div>
         </section>
       </div>

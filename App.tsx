@@ -354,7 +354,7 @@ const App: React.FC = () => {
   const renderScreen = () => {
     switch (currentScreen) {
       case AppScreen.DASHBOARD:
-        return <Dashboard orders={filteredOrders} vehicles={filteredVehicles} fuelEntries={filteredFuel} onAction={(screen) => setCurrentScreen(screen)} />;
+        return <Dashboard orders={filteredOrders} vehicles={filteredVehicles} fuelEntries={filteredFuel} costCenters={filteredCenters} onAction={(screen) => setCurrentScreen(screen)} />;
       case AppScreen.SHIFT_START:
         return <ShiftStart
           vehicles={filteredVehicles}
