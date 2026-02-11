@@ -67,9 +67,11 @@ const App: React.FC = () => {
   const startSync = async () => {
     try {
       // Buscar Veículos
+      // Buscar Veículos
       const { data: vData } = await supabase.from('vehicles').select('*');
+      let currentVehicles: Vehicle[] = [];
       if (vData && vData.length > 0) {
-        const mappedVehicles = vData.map((v: any) => ({
+        currentVehicles = vData.map((v: any) => ({
           id: v.id,
           plate: v.plate,
           model: v.model,
@@ -80,7 +82,7 @@ const App: React.FC = () => {
           costCenter: v.cost_center,
           year: '2023'
         }));
-        setVehicles(mappedVehicles);
+        setVehicles(currentVehicles);
       }
 
       // Buscar Centros de Custo (NOVO)
@@ -94,8 +96,6 @@ const App: React.FC = () => {
           color: c.color || 'bg-primary'
         }));
         setCostCenters(mappedCenters);
-      } else {
-        // Se não vier nada do banco (primeira vez), manter vazio
       }
 
       // Buscar OS
@@ -124,18 +124,21 @@ const App: React.FC = () => {
       // Buscar Combustível
       const { data: fData } = await supabase.from('fuel_entries').select('*');
       if (fData) {
-        const mappedFuel = fData.map((f: any) => ({
-          id: f.id,
-          plate: f.plate,
-          driver: f.driver || 'Motorista',
-          date: f.date,
-          costCenter: '304 - Combustível',
-          item: f.fuel_type || 'Diesel',
-          quantity: Number(f.quantity),
-          unitPrice: Number(f.total_value) / Number(f.quantity),
-          totalValue: Number(f.total_value),
-          invoiceUrl: ''
-        }));
+        const mappedFuel = fData.map((f: any) => {
+          const vehicle = currentVehicles.find(v => v.plate === f.plate);
+          return {
+            id: f.id,
+            plate: f.plate,
+            driver: f.driver || 'Motorista',
+            date: f.date,
+            costCenter: vehicle?.costCenter || 'Geral',
+            item: f.fuel_type || 'Diesel',
+            quantity: Number(f.quantity),
+            unitPrice: Number(f.total_value) / Number(f.quantity),
+            totalValue: Number(f.total_value),
+            invoiceUrl: ''
+          };
+        });
         setFuelEntries(mappedFuel);
       }
 
@@ -281,40 +284,50 @@ const App: React.FC = () => {
   };
 
   // Filtragem de Dados por Perfil
-  const { filteredOrders, filteredVehicles, filteredFuel, filteredShifts } = useMemo(() => {
+  const { filteredOrders, filteredVehicles, filteredFuel, filteredShifts, filteredCenters } = useMemo(() => {
     if (!currentUser || currentUser.role === 'ADMIN') {
       return {
         filteredOrders: orders,
         filteredVehicles: vehicles,
         filteredFuel: fuelEntries,
-        filteredShifts: shifts
+        filteredShifts: shifts,
+        filteredCenters: centersWithStats
       };
     }
 
     const userCCId = currentUser.costCenter ? currentUser.costCenter.split(' ')[0] : '';
 
-    // Se não tiver centro de custo vinculado, mostra vazio ou tudo? 
-    // Regra: "O gestor vai ter acesso ao seu centro de custo" -> Se n tiver CC, não vê nada de dados operacionais
+    // Se não tiver centro de custo vinculado, não vê nada de dados operacionais
     if (!userCCId) {
       return {
         filteredOrders: [],
         filteredVehicles: [],
         filteredFuel: [],
-        filteredShifts: []
+        filteredShifts: [],
+        filteredCenters: []
       };
     }
 
-    return {
-      filteredOrders: orders.filter(o => o.costCenter.startsWith(userCCId)),
-      filteredVehicles: vehicles.filter(v => v.costCenter?.startsWith(userCCId)),
-      filteredFuel: fuelEntries.filter(f => f.costCenter.startsWith(userCCId)),
-      filteredShifts: shifts // Shifts usually linked to vehicle, detailed filter below if needed
-        .filter(s => {
-          const vehicle = vehicles.find(v => v.id === s.vehicle_id);
-          return vehicle?.costCenter?.startsWith(userCCId);
-        })
+    // Helper para match seguro de centro de custo (ID exato)
+    const matchCC = (ccString?: string) => {
+      if (!ccString) return false;
+      return ccString.split(' ')[0] === userCCId;
     };
-  }, [currentUser, orders, vehicles, fuelEntries, shifts]);
+
+    return {
+      filteredOrders: orders.filter(o => matchCC(o.costCenter)),
+      filteredVehicles: vehicles.filter(v => matchCC(v.costCenter)),
+      filteredFuel: fuelEntries.filter(f => matchCC(f.costCenter)),
+      filteredShifts: shifts.filter(s => {
+        const vehicle = vehicles.find(v => v.id === s.vehicle_id);
+        return matchCC(vehicle?.costCenter);
+      }),
+      filteredCenters: centersWithStats.filter(c => matchCC(c.id + ' ')) // c.id é "3", matchCC espera "3 - Name" ou similar
+        // Ajuste: centersWithStats usa c.id que é o número puro.
+        // Vamos simplificar o match para o ID.
+        || centersWithStats.filter(c => c.id === userCCId)
+    };
+  }, [currentUser, orders, vehicles, fuelEntries, shifts, centersWithStats]);
 
 
   const handleResolveBacklog = async (id: string) => {
@@ -373,9 +386,9 @@ const App: React.FC = () => {
           userCostCenter={currentUser?.role !== 'ADMIN' ? currentUser?.costCenter : undefined}
         />;
       case AppScreen.COST_CENTERS:
-        return <CostCenters centers={centersWithStats} setCenters={setCostCenters} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
+        return <CostCenters centers={filteredCenters} setCenters={setCostCenters} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.FLEET_MANAGEMENT:
-        return <FleetManagement vehicles={filteredVehicles} setVehicles={setVehicles} costCenters={costCenters} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
+        return <FleetManagement vehicles={filteredVehicles} setVehicles={setVehicles} costCenters={currentUser?.role === 'ADMIN' ? costCenters : costCenters.filter(c => (currentUser?.costCenter || '').startsWith(c.id))} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.REPORTS:
         return <Reports vehicles={filteredVehicles} orders={filteredOrders} fuelEntries={filteredFuel} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.TIRE_BULLETIN:
