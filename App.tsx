@@ -286,6 +286,25 @@ const App: React.FC = () => {
     }
   };
 
+  const handleDeleteFuelEntry = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir este abastecimento?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('fuel_entries')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setFuelEntries(prev => prev.filter(e => e.id !== id));
+      alert('Abastecimento excluído com sucesso!');
+    } catch (err) {
+      console.error("Erro ao excluir abastecimento:", err);
+      alert('Erro ao excluir abastecimento.');
+    }
+  };
+
   const handleStartShift = async (shiftData: any) => {
     const newShift: Shift = {
       id: Math.random().toString(36).substr(2, 9),
@@ -422,7 +441,12 @@ const App: React.FC = () => {
           userCostCenter={currentUser?.role !== 'ADMIN' ? currentUser?.costCenter : undefined}
         />;
       case AppScreen.FUEL_CONTROL:
-        return <FuelControl fuelEntries={filteredFuel} onAction={(screen) => setCurrentScreen(screen)} isAdmin={currentUser?.role === 'ADMIN'} />;
+        return <FuelControl
+          fuelEntries={filteredFuel}
+          onAction={(screen) => setCurrentScreen(screen)}
+          isAdmin={currentUser?.role === 'ADMIN'}
+          onDelete={handleDeleteFuelEntry}
+        />;
       case AppScreen.FUEL_ENTRY:
         return <FuelEntry
           vehicles={filteredVehicles}

@@ -240,99 +240,35 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
           </div>
         </section>
 
-        {/* Fluxo de Caixa (6 Meses) */}
-        <section className="bg-white dark:bg-card-dark rounded-2xl p-6 md:p-8 border border-slate-200 dark:border-slate-800/50 shadow-md">
-          <div className="flex justify-between items-start mb-8">
-            <div>
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1 leading-none">Fluxo de Caixa (6 Meses)</p>
-              <h2 className="text-xl md:text-2xl font-black italic text-slate-900 dark:text-white uppercase tracking-tighter">Manutenção & Combustível</h2>
-            </div>
-            <div className="text-right">
-              <p className="text-xl md:text-3xl font-black text-[#1754cf] italic leading-none">R$ {totalInvestment.toLocaleString('pt-BR')}</p>
-              <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Investimento Total Acumulado</p>
-            </div>
-          </div>
-
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={cashFlowData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.1} />
-                <XAxis
-                  dataKey="name"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }}
-                  dy={10}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }}
-                />
-                <Tooltip
-                  cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
-                  contentStyle={{
-                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: 'bold',
-                    color: '#fff'
-                  }}
-                  itemStyle={{ color: '#fff' }}
-                  formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR')}`}
-                />
-                <Legend
-                  verticalAlign="top"
-                  align="right"
-                  iconType="circle"
-                  wrapperStyle={{ paddingBottom: '20px', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}
-                />
-                <Bar
-                  dataKey="maintenance"
-                  name="Manutenção"
-                  stackId="a"
-                  fill="#FF5100"
-                  radius={[0, 0, 0, 0]}
-                  barSize={40}
-                />
-                <Bar
-                  dataKey="fuel"
-                  name="Combustível"
-                  stackId="a"
-                  fill="#0088FF"
-                  radius={[6, 6, 0, 0]}
-                  barSize={40}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </section>
 
         {/* Expenses by Cost Center */}
-        <section className="bg-white dark:bg-card-dark rounded-2xl p-5 md:p-8 border border-slate-200 dark:border-slate-800/50 shadow-md">
+        <section className="bg-white dark:bg-card-dark rounded-2xl p-5 md:p-8 border border-slate-200 dark:border-slate-800/50 shadow-md md:col-span-2">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-base md:text-lg font-black italic tracking-tighter uppercase text-slate-900 dark:text-white">Gasto por Centro de Custo</h2>
             <button onClick={() => onAction(AppScreen.COST_CENTERS)} className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline px-4 py-2 bg-primary/10 rounded-xl">Ver Detalhes</button>
           </div>
 
-          <div className="h-[450px] w-full mt-4">
+          <div className="h-[450px] w-full mt-4 min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={enrichedCostCenters}
-                layout="vertical"
-                margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
-                barGap={-40}
+                margin={{ top: 20, right: 30, left: 10, bottom: 80 }}
               >
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#334155" opacity={0.1} />
-                <XAxis type="number" hide />
-                <YAxis
+                <XAxis
                   dataKey="name"
-                  type="category"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 11, fontWeight: 900, fill: '#fff' }}
-                  width={90}
+                  tick={{ fontSize: 9, fontWeight: 900, fill: '#64748b' }}
+                  angle={-45}
+                  textAnchor="end"
+                  interval={0}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fontWeight: 900, fill: '#64748b' }}
+                  tickFormatter={(val) => `R$ ${val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val}`}
                 />
                 <Tooltip
                   cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
@@ -358,9 +294,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
                   dataKey="budget"
                   name="Orçamento Liberado"
                   fill="#CCFF00"
-                  opacity={0.2}
-                  radius={[0, 20, 20, 0]}
-                  barSize={40}
+                  opacity={0.15}
+                  radius={[15, 15, 0, 0]}
+                  barSize={50}
                   isAnimationActive={false}
                 />
                 <Bar
@@ -368,15 +304,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, fuelE
                   name="Manutenção"
                   stackId="a"
                   fill="#FF5100"
-                  barSize={40}
+                  barSize={50}
                 />
                 <Bar
                   dataKey="fuel"
                   name="Combustível"
                   stackId="a"
                   fill="#0088FF"
-                  radius={[0, 20, 20, 0]}
-                  barSize={40}
+                  radius={[15, 15, 0, 0]}
+                  barSize={50}
                 />
               </BarChart>
             </ResponsiveContainer>

@@ -6,9 +6,10 @@ interface FuelControlProps {
   onAction: (screen: AppScreen) => void;
   fuelEntries: FuelEntryData[];
   isAdmin?: boolean;
+  onDelete?: (id: string) => void;
 }
 
-const FuelControl: React.FC<FuelControlProps> = ({ onAction, fuelEntries, isAdmin = false }) => {
+const FuelControl: React.FC<FuelControlProps> = ({ onAction, fuelEntries, isAdmin = false, onDelete }) => {
   const averageConsum = fuelEntries.length > 0 ? "2.4" : "0.0";
   const totalCost = fuelEntries.reduce((acc, curr) => acc + curr.totalValue, 0);
   const totalLiters = fuelEntries.reduce((acc, curr) => acc + curr.quantity, 0);
@@ -67,7 +68,7 @@ const FuelControl: React.FC<FuelControlProps> = ({ onAction, fuelEntries, isAdmi
                     {isAdmin && (
                       <div className="flex gap-1 ml-2">
                         <button onClick={() => alert("Editar abastecimento (Implementar)")} className="size-6 bg-slate-100 rounded flex items-center justify-center text-slate-500 hover:text-primary"><span className="material-symbols-outlined text-sm">edit</span></button>
-                        <button onClick={() => alert("Excluir abastecimento (Implementar)")} className="size-6 bg-slate-100 rounded flex items-center justify-center text-slate-500 hover:text-accent-error"><span className="material-symbols-outlined text-sm">delete</span></button>
+                        <button onClick={() => onDelete && onDelete(entry.id)} className="size-6 bg-slate-100 rounded flex items-center justify-center text-slate-500 hover:text-accent-error"><span className="material-symbols-outlined text-sm">delete</span></button>
                       </div>
                     )}
                   </div>
