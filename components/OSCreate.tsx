@@ -1,7 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Vehicle } from '../types';
-import { OSDetail } from '../App';
+import { Vehicle, OSDetail } from '../types';
 import { generatePreventiveEmailBody } from '../services/geminiService';
 
 interface OSCreateProps {

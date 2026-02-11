@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { CostCenter } from '../App';
+import { CostCenter } from '../types';
 import { supabase } from '../services/supabaseClient';
 
 interface CostCentersProps {

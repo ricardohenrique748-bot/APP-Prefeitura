@@ -2,8 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { getFleetInsights } from '../services/geminiService';
-import { Vehicle } from '../types';
-import { OSDetail, FuelEntryData } from '../App';
+import { Vehicle, OSDetail, FuelEntryData } from '../types';
 
 interface ReportsProps {
   onBack: () => void;

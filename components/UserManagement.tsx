@@ -23,7 +23,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
     email: '',
     role: 'OPERADOR' as 'ADMIN' | 'GESTOR' | 'OPERADOR' | 'MOTORISTA',
     status: 'ACTIVE' as 'ACTIVE' | 'INACTIVE',
-    costCenter: ''
+    costCenter: '',
+    password: '123'
   });
 
   useEffect(() => {
@@ -36,10 +37,11 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
       const { data, error } = await supabase.from('app_users').select('*').order('name');
       if (error) throw error;
       if (data) {
-        // Map cost_center from snake_case if necessary, though types usually map 1:1 if configured
+        // Map fields from snake_case if necessary
         const mappedUsers = data.map((u: any) => ({
           ...u,
-          costCenter: u.cost_center
+          costCenter: u.cost_center,
+          changePassword: u.change_password
         }));
         setUsers(mappedUsers as User[]);
       }
@@ -61,7 +63,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
       email: '',
       role: currentUserRole === 'GESTOR' ? 'MOTORISTA' : 'OPERADOR',
       status: 'ACTIVE',
-      costCenter: ''
+      costCenter: '',
+      password: '123'
     });
     setIsAdding(true);
   };
@@ -77,7 +80,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
       email: user.email,
       role: user.role as any,
       status: user.status,
-      costCenter: user.costCenter || ''
+      costCenter: user.costCenter || '',
+      password: user.password || '123'
     });
   };
 
@@ -92,6 +96,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
           role: formData.role,
           status: formData.status,
           cost_center: formData.costCenter,
+          password: formData.password,
+          change_password: true,
           avatar: `https://ui-avatars.com/api/?name=${formData.name}&background=1754cf&color=fff`
         }]);
         if (error) throw error;
@@ -102,7 +108,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
           email: formData.email,
           role: formData.role,
           status: formData.status,
-          cost_center: formData.costCenter
+          cost_center: formData.costCenter,
+          password: formData.password
         }).eq('id', editingUser.id);
         if (error) throw error;
         setEditingUser(null);
@@ -268,6 +275,24 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, currentUserRole
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm outline-none focus:ring-2 focus:ring-primary"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Senha de Acesso</label>
+                <div className="relative group">
+                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">lock</span>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Senha provisória"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl pl-12 pr-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <p className="text-[9px] text-slate-400 px-1 font-medium mt-1 italic">
+                  * O sistema solicitará a troca desta senha no primeiro acesso do usuário.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

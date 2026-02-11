@@ -58,6 +58,8 @@ export interface User {
   status: 'ACTIVE' | 'INACTIVE';
   avatar?: string;
   costCenter?: string;
+  password?: string;
+  changePassword?: boolean;
 }
 
 export interface Supplier {
@@ -90,4 +92,44 @@ export interface Shift {
   damageReport?: any;
   signatureUrl?: string;
   status: 'OPEN' | 'CLOSED';
+}
+
+export interface CostCenter {
+  id: string;
+  name: string;
+  company: string;
+  budget: number;
+  color: string;
+}
+
+export interface OSDetail {
+  id: string;
+  plate: string;
+  task: string;
+  taskType: 'Preventiva' | 'Corretiva' | 'Preditiva';
+  status: string;
+  priority: string;
+  time: string;
+  mechanic: string;
+  description: string;
+  costCenter: string;
+  openedAt: string;
+  isPaid: boolean;
+  costValue?: number;
+  invoiceUrl?: string;
+  quoteUrl?: string;
+}
+
+export interface FuelEntryData {
+  id: string;
+  plate: string;
+  driver: string;
+  date: string;
+  costCenter: string;
+  item: string;
+  quantity: number;
+  unitPrice: number;
+  totalValue: number;
+  invoiceUrl?: string;
+  supplier?: string;
 }

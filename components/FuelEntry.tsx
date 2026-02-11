@@ -1,7 +1,5 @@
-
 import React, { useState, useRef } from 'react';
-import { FuelEntryData } from '../App';
-import { Vehicle, Supplier } from '../types';
+import { Vehicle, Supplier, FuelEntryData } from '../types';
 
 interface FuelEntryProps {
   onBack: () => void;

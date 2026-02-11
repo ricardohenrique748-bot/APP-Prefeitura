@@ -1,7 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { AppScreen } from '../types';
-import { OSDetail } from '../App';
+import { OSDetail, AppScreen } from '../types';
 import { supabase } from '../services/supabaseClient';
 
 interface OSControlProps {

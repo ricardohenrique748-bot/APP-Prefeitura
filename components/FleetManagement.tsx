@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
-import { AppScreen, Vehicle } from '../types';
-import { CostCenter } from '../App';
+import { Vehicle, CostCenter, AppScreen } from '../types';
 import { supabase } from '../services/supabaseClient';
 
 interface FleetManagementProps {

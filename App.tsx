@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { AppScreen, Vehicle, User, Shift, Supplier } from './types';
+import { AppScreen, Vehicle, User, Shift, Supplier, CostCenter, OSDetail, FuelEntryData } from './types';
 import DeviceSimulator from './components/DeviceSimulator';
 import Dashboard from './components/Dashboard';
 import ShiftStart from './components/ShiftStart';
@@ -24,45 +24,9 @@ import SupplierQuote from './components/SupplierQuote';
 import ChecklistHistory from './components/ChecklistHistory';
 import { supabase } from './services/supabaseClient';
 
-export interface OSDetail {
-  id: string;
-  plate: string;
-  task: string;
-  taskType: 'Preventiva' | 'Corretiva' | 'Preditiva';
-  status: string;
-  priority: string;
-  time: string;
-  mechanic: string;
-  description: string;
-  costCenter: string;
-  openedAt: string;
-  isPaid: boolean;
-  costValue?: number;
-  invoiceUrl?: string;
-  quoteUrl?: string;
-}
 
-export interface FuelEntryData {
-  id: string;
-  plate: string;
-  driver: string;
-  date: string;
-  costCenter: string;
-  item: string;
-  quantity: number;
-  unitPrice: number;
-  totalValue: number;
-  invoiceUrl?: string;
-  supplier?: string;
-}
 
-export interface CostCenter {
-  id: string;
-  name: string;
-  company: string;
-  budget: number;
-  color: string;
-}
+
 
 // DEFAULT_COST_CENTERS removed to force Supabase usage
 

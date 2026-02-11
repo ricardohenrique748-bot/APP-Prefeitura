@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { AppScreen, Vehicle } from '../types';
-import { OSDetail, FuelEntryData } from '../App';
+import { AppScreen, Vehicle, OSDetail, FuelEntryData } from '../types';
 
 interface DashboardProps {
   onAction: (screen: AppScreen) => void;

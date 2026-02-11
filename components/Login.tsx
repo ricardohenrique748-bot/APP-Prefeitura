@@ -20,6 +20,11 @@ const Login: React.FC<LoginProps> = ({ onLogin, isDarkMode = false }) => {
   const [recoveryEmail, setRecoveryEmail] = useState('');
   const [recoverySent, setRecoverySent] = useState(false);
 
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [tempUser, setTempUser] = useState<User | null>(null);
+
   useEffect(() => {
     const savedEmail = localStorage.getItem('smart_tech_remember_email');
     const savedRemember = localStorage.getItem('smart_tech_remember_me') === 'true';
@@ -82,9 +87,9 @@ const Login: React.FC<LoginProps> = ({ onLogin, isDarkMode = false }) => {
         .from('app_users')
         .select('*')
         .eq('email', email)
-        .single();
+        .maybeSingle(); // Better than single() to avoid throwing on not found
 
-      if (dbError && dbError.code !== 'PGRST116') {
+      if (dbError) {
         console.error("Login Error:", dbError);
         setError('Erro de conexão com o servidor.');
         setLoading(false);
@@ -92,14 +97,11 @@ const Login: React.FC<LoginProps> = ({ onLogin, isDarkMode = false }) => {
       }
 
       if (data) {
-        // User found. Check password.
-        // Currently utilizing default password '123456' or '123' as per previous rules, 
-        // until a proper password field is implemented in app_users.
-        // Assuming password is the input 'password'
+        // Use password from database, fallback to '123' if not present
+        const dbPassword = data.password || '123';
 
-        // TEMPORARY: Allow '123456' or '123' or any password if we don't have a column?
-        // Let's enforce '123456' for now as the hardcoded ones use it.
-        if (password === '123456' || password === '123') {
+        // Match either the db password or the legacy '123456'
+        if (password === dbPassword || password === '123456') {
           const dbUser: User = {
             id: data.id,
             name: data.name,
@@ -107,11 +109,21 @@ const Login: React.FC<LoginProps> = ({ onLogin, isDarkMode = false }) => {
             role: data.role as any,
             status: data.status as any,
             avatar: data.avatar || `https://ui-avatars.com/api/?name=${data.name}&background=random`,
-            costCenter: data.cost_center
+            costCenter: data.cost_center,
+            password: data.password,
+            changePassword: data.change_password
           };
 
           if (dbUser.status !== 'ACTIVE') {
             setError('Usuário inativo. Contate o suporte.');
+            setLoading(false);
+            return;
+          }
+
+          // Check if password change is required
+          if (data.change_password) {
+            setTempUser(dbUser);
+            setIsChangingPassword(true);
             setLoading(false);
             return;
           }
@@ -131,6 +143,44 @@ const Login: React.FC<LoginProps> = ({ onLogin, isDarkMode = false }) => {
     } catch (err) {
       console.error("Login Exception:", err);
       setError('Ocorreu um erro ao tentar entrar.');
+      setLoading(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setError('As senhas não coincidem.');
+      return;
+    }
+    if (newPassword.length < 3) {
+      setError('A senha deve ter pelo menos 3 caracteres.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error: updateError } = await supabase
+        .from('app_users')
+        .update({
+          password: newPassword,
+          change_password: false
+        })
+        .eq('id', tempUser?.id);
+
+      if (updateError) throw updateError;
+
+      if (tempUser) {
+        loginUser({
+          ...tempUser,
+          password: newPassword,
+          changePassword: false
+        });
+      }
+    } catch (err) {
+      console.error("Update Password Error:", err);
+      setError('Erro ao atualizar senha.');
+    } finally {
       setLoading(false);
     }
   };
@@ -163,7 +213,42 @@ const Login: React.FC<LoginProps> = ({ onLogin, isDarkMode = false }) => {
           </div>
         </div>
 
-        {!isForgotPassword ? (
+        {isChangingPassword ? (
+          <form onSubmit={handleChangePassword} className="space-y-4 animate-in slide-in-from-right-4 duration-500">
+            <div className="text-center space-y-2 mb-4">
+              <h3 className="text-lg font-black italic uppercase tracking-tighter">Primeiro Acesso</h3>
+              <p className="text-xs text-slate-500 font-medium italic">Por segurança, você deve definir uma nova senha para sua conta.</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Nova Senha</label>
+              <div className="relative group">
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">lock</span>
+                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••" className="w-full h-12 bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 px-12 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary transition-all text-sm shadow-sm" required />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Confirmar Nova Senha</label>
+              <div className="relative group">
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">lock</span>
+                <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••" className="w-full h-12 bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 px-12 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary transition-all text-sm shadow-sm" required />
+              </div>
+            </div>
+
+            {error && <p className="text-center text-xs font-bold text-accent-error uppercase tracking-tighter">{error}</p>}
+
+            <button type="submit" disabled={loading} className="w-full h-14 bg-accent-success text-white font-black rounded-xl shadow-xl shadow-accent-success/30 active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+              {loading ? <div className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin"></div> : (
+                <>
+                  <span className="uppercase tracking-widest text-xs italic">Atualizar e Entrar</span>
+                  <span className="material-symbols-outlined text-lg">check</span>
+                </>
+              )}
+            </button>
+            <button type="button" onClick={() => { setIsChangingPassword(false); setError(''); }} className="w-full h-12 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cancelar</button>
+          </form>
+        ) : !isForgotPassword ? (
           <form onSubmit={handleLogin} className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">E-mail Corporativo</label>

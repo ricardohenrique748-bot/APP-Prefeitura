@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { AppScreen } from '../types';
-import { FuelEntryData } from '../App';
+import { FuelEntryData, AppScreen } from '../types';
 
 interface FuelControlProps {
   onAction: (screen: AppScreen) => void;
