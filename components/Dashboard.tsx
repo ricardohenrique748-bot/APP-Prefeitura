@@ -221,8 +221,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onAction, orders, vehicles, costC
               >
                 <defs>
                   <linearGradient id="budgetGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#a5b4fc" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#a5b4fc" stopOpacity={0.1} />
+                    <stop offset="0%" stopColor="#06b6d4" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#0891b2" stopOpacity={1} />
                   </linearGradient>
                   <linearGradient id="maintenanceGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#8b5cf6" stopOpacity={1} />
