@@ -7,7 +7,7 @@ interface ShiftEndProps {
 
 const ShiftEnd: React.FC<ShiftEndProps> = ({ onBack }) => {
   const [km, setKm] = useState('143120');
-  const [fuel, setFuel] = useState('45.5');
+
 
   return (
     <div className="p-4 space-y-6">
@@ -16,28 +16,14 @@ const ShiftEnd: React.FC<ShiftEndProps> = ({ onBack }) => {
         <div className="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-4">
           <label className="flex flex-col w-full">
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400 pb-2">KM Final</p>
-            <input 
-              className="w-full rounded-lg text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#111722] h-12 px-4 focus:ring-2 focus:ring-primary outline-none text-base font-mono" 
-              type="number" 
+            <input
+              className="w-full rounded-lg text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#111722] h-12 px-4 focus:ring-2 focus:ring-primary outline-none text-base font-mono"
+              type="number"
               value={km}
               onChange={(e) => setKm(e.target.value)}
             />
           </label>
 
-          <label className="flex flex-col w-full">
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 pb-2">Combustível Abastecido (Liters)</p>
-            <div className="relative">
-              <input 
-                className="w-full rounded-lg text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#111722] h-12 px-4 focus:ring-2 focus:ring-primary outline-none text-base" 
-                type="number" 
-                step="0.1"
-                placeholder="0.0"
-                value={fuel}
-                onChange={(e) => setFuel(e.target.value)}
-              />
-              <span className="absolute right-4 top-3 text-slate-400 font-bold">L</span>
-            </div>
-          </label>
         </div>
       </section>
 
@@ -47,7 +33,7 @@ const ShiftEnd: React.FC<ShiftEndProps> = ({ onBack }) => {
           {[
             { label: 'Limpeza Interna', icon: 'cleaning_services' },
             { label: 'Nível de Arla 32', icon: 'water_drop' },
-            { label: 'Tanque Cheio', icon: 'local_gas_station' },
+
           ].map((item, i) => (
             <div key={i} className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
@@ -61,13 +47,13 @@ const ShiftEnd: React.FC<ShiftEndProps> = ({ onBack }) => {
       </section>
 
       <div className="pt-4 space-y-3">
-        <button 
+        <button
           onClick={onBack}
           className="w-full h-14 bg-accent-error text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
         >
           <span className="material-symbols-outlined">stop_circle</span> Encerrar Turno
         </button>
-        <button 
+        <button
           onClick={onBack}
           className="w-full py-3 text-slate-500 font-bold text-sm uppercase tracking-widest"
         >

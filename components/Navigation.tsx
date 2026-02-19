@@ -12,7 +12,6 @@ const Navigation: React.FC<NavigationProps> = ({ activeScreen, onNavigate }) => 
     { screen: AppScreen.DASHBOARD, icon: 'dashboard', label: 'Painel' },
     { screen: AppScreen.SHIFT_START, icon: 'local_shipping', label: 'Frota' },
     { screen: AppScreen.OS_CONTROL, icon: 'settings_suggest', label: 'Controle OS' },
-    { screen: AppScreen.FUEL_CONTROL, icon: 'local_gas_station', label: 'Combustível' },
     { screen: AppScreen.SETTINGS, icon: 'settings', label: 'Ajustes' },
   ];
 

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { AppScreen, Vehicle, User, Shift, Supplier, CostCenter, OSDetail, FuelEntryData } from './types';
+import { AppScreen, Vehicle, User, Shift, Supplier, CostCenter, OSDetail } from './types';
 import DeviceSimulator from './components/DeviceSimulator';
 import Dashboard from './components/Dashboard';
 import ShiftStart from './components/ShiftStart';
@@ -10,8 +10,7 @@ import CostCenters from './components/CostCenters';
 import Reports from './components/Reports';
 import OSCreate from './components/OSCreate';
 import OSControl from './components/OSControl';
-import FuelControl from './components/FuelControl';
-import FuelEntry from './components/FuelEntry';
+
 import Login from './components/Login';
 import Navigation from './components/Navigation';
 import Header from './components/Header';
@@ -50,7 +49,6 @@ const App: React.FC = () => {
   const [costCenters, setCostCenters] = useState<CostCenter[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [orders, setOrders] = useState<OSDetail[]>([]);
-  const [fuelEntries, setFuelEntries] = useState<FuelEntryData[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [activeShifts, setActiveShifts] = useState<string[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -123,28 +121,7 @@ const App: React.FC = () => {
         setOrders(mappedOrders);
       }
 
-      // Buscar Combustível
-      const { data: fData } = await supabase.from('fuel_entries').select('*');
-      if (fData) {
-        const mappedFuel = fData.map((f: any) => {
-          const vehicle = currentVehicles.find(v => v.plate === f.plate);
-          return {
-            id: f.id,
-            plate: f.plate,
-            driver: f.driver || 'Motorista',
-            date: f.date,
-            costCenter: vehicle?.costCenter || 'Geral',
-            item: f.fuel_type || 'Diesel',
-            quantity: Number(f.quantity),
-            unitPrice: Number(f.total_value) / Number(f.quantity),
-            totalValue: Number(f.total_value),
-            km: f.km,
-            supplier: f.station,
-            invoiceUrl: ''
-          };
-        });
-        setFuelEntries(mappedFuel);
-      }
+
 
       // Buscar Turnos (Shifts)
       const { data: sData } = await supabase.from('shifts').select('*');
@@ -186,15 +163,11 @@ const App: React.FC = () => {
   // Cálculos de Centros de Custo em tempo real
   const centersWithStats = useMemo(() => {
     return costCenters.map(center => {
-      const fuelTotal = fuelEntries
-        .filter(f => f.costCenter.includes(center.id))
-        .reduce((sum, f) => sum + f.totalValue, 0);
-
       const osTotal = orders
         .filter(o => o.costCenter.includes(center.id))
         .reduce((sum, o) => sum + (o.costValue || 0), 0);
 
-      const consumed = fuelTotal + osTotal;
+      const consumed = osTotal;
       const progress = center.budget > 0 ? Math.min(100, Math.round((consumed / center.budget) * 100)) : 0;
 
       return {
@@ -206,12 +179,11 @@ const App: React.FC = () => {
         warning: progress >= 90
       };
     });
-  }, [costCenters, fuelEntries, orders]);
+  }, [costCenters, orders]);
 
   useEffect(() => { localStorage.setItem('smart_tech_cost_centers', JSON.stringify(costCenters)); }, [costCenters]);
   useEffect(() => { localStorage.setItem('smart_tech_vehicles', JSON.stringify(vehicles)); }, [vehicles]);
   useEffect(() => { localStorage.setItem('smart_tech_orders', JSON.stringify(orders)); }, [orders]);
-  useEffect(() => { localStorage.setItem('smart_tech_fuel_entries', JSON.stringify(fuelEntries)); }, [fuelEntries]);
   useEffect(() => { localStorage.setItem('smart_tech_active_shifts', JSON.stringify(activeShifts)); }, [activeShifts]);
   useEffect(() => {
     if (currentUser) {
@@ -238,70 +210,6 @@ const App: React.FC = () => {
       setVehicles(prev => prev.map(v => v.id === id ? { ...v, km: newKm } : v));
     } catch (error) {
       console.error("Erro ao atualizar KM no Supabase:", error);
-    }
-  };
-
-  const handleAddFuelEntry = async (entry: FuelEntryData) => {
-    try {
-      // 1. Achar o ID do veículo pela placa
-      const vehicle = vehicles.find(v => v.plate === entry.plate);
-
-      // 2. Salvar no Supabase
-      const { data, error } = await supabase
-        .from('fuel_entries')
-        .insert({
-          vehicle_id: vehicle?.id,
-          plate: entry.plate,
-          driver: entry.driver,
-          date: entry.date.split(' ')[0], // Apenas a data YYYY-MM-DD
-          fuel_type: entry.item,
-          quantity: entry.quantity,
-          total_value: entry.totalValue,
-          km: entry.km,
-          station: entry.supplier
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // 3. Se informou KM, atualiza o veículo
-      if (entry.km && vehicle) {
-        await updateVehicleKm(vehicle.id, entry.km);
-      }
-
-      // 4. Atualizar estado local com o ID real retornado do banco
-      if (data) {
-        const savedEntry: FuelEntryData = {
-          ...entry,
-          id: data.id
-        };
-        setFuelEntries(prev => [savedEntry, ...prev]);
-      }
-    } catch (err) {
-      console.error("Erro ao salvar abastecimento:", err);
-      alert("Erro ao salvar abastecimento no banco de dados.");
-      // Fallback para estado local para não travar o usuário
-      setFuelEntries(prev => [entry, ...prev]);
-    }
-  };
-
-  const handleDeleteFuelEntry = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este abastecimento?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('fuel_entries')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setFuelEntries(prev => prev.filter(e => e.id !== id));
-      alert('Abastecimento excluído com sucesso!');
-    } catch (err) {
-      console.error("Erro ao excluir abastecimento:", err);
-      alert('Erro ao excluir abastecimento.');
     }
   };
 
@@ -348,12 +256,11 @@ const App: React.FC = () => {
   };
 
   // Filtragem de Dados por Perfil
-  const { filteredOrders, filteredVehicles, filteredFuel, filteredShifts, filteredCenters } = useMemo(() => {
+  const { filteredOrders, filteredVehicles, filteredShifts, filteredCenters } = useMemo(() => {
     if (!currentUser || currentUser.role === 'ADMIN') {
       return {
         filteredOrders: orders,
         filteredVehicles: vehicles,
-        filteredFuel: fuelEntries,
         filteredShifts: shifts,
         filteredCenters: centersWithStats
       };
@@ -366,7 +273,6 @@ const App: React.FC = () => {
       return {
         filteredOrders: [],
         filteredVehicles: [],
-        filteredFuel: [],
         filteredShifts: [],
         filteredCenters: []
       };
@@ -381,7 +287,6 @@ const App: React.FC = () => {
     return {
       filteredOrders: orders.filter(o => matchCC(o.costCenter)),
       filteredVehicles: vehicles.filter(v => matchCC(v.costCenter)),
-      filteredFuel: fuelEntries.filter(f => matchCC(f.costCenter)),
       filteredShifts: shifts.filter(s => {
         const vehicle = vehicles.find(v => v.id === s.vehicle_id);
         return matchCC(vehicle?.costCenter);
@@ -391,7 +296,7 @@ const App: React.FC = () => {
         // Vamos simplificar o match para o ID.
         || centersWithStats.filter(c => c.id === userCCId)
     };
-  }, [currentUser, orders, vehicles, fuelEntries, shifts, centersWithStats]);
+  }, [currentUser, orders, vehicles, shifts, centersWithStats]);
 
 
   const handleResolveBacklog = async (id: string) => {
@@ -418,7 +323,7 @@ const App: React.FC = () => {
   const renderScreen = () => {
     switch (currentScreen) {
       case AppScreen.DASHBOARD:
-        return <Dashboard orders={filteredOrders} vehicles={filteredVehicles} fuelEntries={filteredFuel} costCenters={filteredCenters} onAction={(screen) => setCurrentScreen(screen)} />;
+        return <Dashboard orders={filteredOrders} vehicles={filteredVehicles} costCenters={filteredCenters} onAction={(screen) => setCurrentScreen(screen)} />;
       case AppScreen.SHIFT_START:
         return <ShiftStart
           vehicles={filteredVehicles}
@@ -440,27 +345,12 @@ const App: React.FC = () => {
           onBack={() => setCurrentScreen(AppScreen.OS_CONTROL)}
           userCostCenter={currentUser?.role !== 'ADMIN' ? currentUser?.costCenter : undefined}
         />;
-      case AppScreen.FUEL_CONTROL:
-        return <FuelControl
-          fuelEntries={filteredFuel}
-          onAction={(screen) => setCurrentScreen(screen)}
-          isAdmin={currentUser?.role === 'ADMIN'}
-          onDelete={handleDeleteFuelEntry}
-        />;
-      case AppScreen.FUEL_ENTRY:
-        return <FuelEntry
-          vehicles={filteredVehicles}
-          suppliers={suppliers}
-          onSave={handleAddFuelEntry}
-          onBack={() => setCurrentScreen(AppScreen.FUEL_CONTROL)}
-          userCostCenter={currentUser?.role !== 'ADMIN' ? currentUser?.costCenter : undefined}
-        />;
       case AppScreen.COST_CENTERS:
         return <CostCenters centers={filteredCenters} setCenters={setCostCenters} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.FLEET_MANAGEMENT:
         return <FleetManagement vehicles={filteredVehicles} setVehicles={setVehicles} costCenters={currentUser?.role === 'ADMIN' ? costCenters : costCenters.filter(c => (currentUser?.costCenter || '').startsWith(c.id))} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.REPORTS:
-        return <Reports vehicles={filteredVehicles} orders={filteredOrders} fuelEntries={filteredFuel} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
+        return <Reports vehicles={filteredVehicles} orders={filteredOrders} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.TIRE_BULLETIN:
         return <TireBulletin vehicles={filteredVehicles} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.USER_MANAGEMENT:
@@ -501,7 +391,7 @@ const App: React.FC = () => {
           onSync={startSync}
         />;
       default:
-        return <Dashboard orders={filteredOrders} vehicles={filteredVehicles} fuelEntries={filteredFuel} onAction={(screen) => setCurrentScreen(screen)} />;
+        return <Dashboard orders={filteredOrders} vehicles={filteredVehicles} onAction={(screen) => setCurrentScreen(screen)} costCenters={filteredCenters} />;
     }
   };
 

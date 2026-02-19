@@ -2,16 +2,15 @@
 import React, { useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { getFleetInsights } from '../services/geminiService';
-import { Vehicle, OSDetail, FuelEntryData } from '../types';
+import { Vehicle, OSDetail } from '../types';
 
 interface ReportsProps {
   onBack: () => void;
   vehicles: Vehicle[];
   orders: OSDetail[];
-  fuelEntries: FuelEntryData[];
 }
 
-const Reports: React.FC<ReportsProps> = ({ onBack, vehicles, orders, fuelEntries }) => {
+const Reports: React.FC<ReportsProps> = ({ onBack, vehicles, orders }) => {
   const [insight, setInsight] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
@@ -32,19 +31,6 @@ const Reports: React.FC<ReportsProps> = ({ onBack, vehicles, orders, fuelEntries
       });
     }
 
-    // Add fuel costs
-    fuelEntries.forEach(entry => {
-      const entryDate = new Date(entry.date);
-      const monthIdx = entryDate.getMonth();
-      const year = entryDate.getFullYear();
-
-      const monthData = last6Months.find(m => m.monthIdx === monthIdx && m.year === year);
-      if (monthData) {
-        monthData.custo += entry.totalValue;
-        monthData.litros += entry.quantity;
-      }
-    });
-
     // Add maintenance costs
     orders.forEach(order => {
       if (!order.openedAt) return;
@@ -63,23 +49,18 @@ const Reports: React.FC<ReportsProps> = ({ onBack, vehicles, orders, fuelEntries
     });
 
     return last6Months;
-  }, [orders, fuelEntries]);
+  }, [orders]);
 
   const summaryStats = useMemo(() => {
     const totalMaintenance = orders.reduce((sum, o) => sum + (o.costValue || 0), 0);
-    const totalFuel = fuelEntries.reduce((sum, f) => sum + f.totalValue, 0);
     const activeVehicles = vehicles.filter(v => v.status === 'ACTIVE').length;
     const availability = vehicles.length > 0 ? (activeVehicles / vehicles.length) * 100 : 0;
 
-    const totalKm = fuelEntries.reduce((sum, f) => sum + (f.quantity * (Math.random() * 2 + 5)), 0); // Mock average km/l since we don't have delta km here easily
-    const avgConsumption = fuelEntries.length > 0 ? (totalKm / fuelEntries.reduce((sum, f) => sum + f.quantity, 0)) : 0;
-
     return {
-      totalInvested: totalMaintenance + totalFuel,
-      availability: availability.toFixed(1),
-      avgConsumption: avgConsumption.toFixed(1)
+      totalInvested: totalMaintenance,
+      availability: availability.toFixed(1)
     };
-  }, [vehicles, orders, fuelEntries]);
+  }, [vehicles, orders]);
 
   const generateAIInsight = async () => {
     setLoading(true);
@@ -159,7 +140,7 @@ const Reports: React.FC<ReportsProps> = ({ onBack, vehicles, orders, fuelEntries
         <div className="flex justify-between items-center mb-8">
           <div>
             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Fluxo de Caixa (6 Meses)</h3>
-            <p className="text-sm font-black italic uppercase">Manutenção & Combustível</p>
+            <p className="text-sm font-black italic uppercase">Manutenção</p>
           </div>
           <div className="text-right">
             <p className="text-2xl font-black text-primary leading-none">R$ {summaryStats.totalInvested.toLocaleString('pt-BR')}</p>
@@ -194,11 +175,13 @@ const Reports: React.FC<ReportsProps> = ({ onBack, vehicles, orders, fuelEntries
                 labelStyle={{ fontSize: '10px', color: '#94a3b8', marginBottom: '4px', textTransform: 'uppercase', fontWeight: 'black' }}
                 formatter={(value: any) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Gasto Total']}
               />
-              <Bar dataKey="custo" radius={[6, 6, 6, 6]} barSize={32}>
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={index === chartData.length - 1 ? '#3b82f6' : '#94a3b830'} />
-                ))}
-              </Bar>
+              <defs>
+                <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#06b6d4" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#0891b2" stopOpacity={1} />
+                </linearGradient>
+              </defs>
+              <Bar dataKey="custo" radius={[6, 6, 6, 6]} barSize={32} fill="url(#barGradient)" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -220,19 +203,7 @@ const Reports: React.FC<ReportsProps> = ({ onBack, vehicles, orders, fuelEntries
           </div>
         </div>
 
-        <div className="bg-white dark:bg-card-dark p-6 rounded-[1.5rem] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
-          <div className="flex items-center gap-2 text-primary mb-2">
-            <span className="material-symbols-outlined text-xl">ev_station</span>
-            <span className="text-[10px] font-black uppercase tracking-widest">Consumo Médio</span>
-          </div>
-          <p className="text-3xl font-black italic tracking-tighter">{summaryStats.avgConsumption}</p>
-          <div className="mt-2 flex items-center gap-1">
-            <span className="text-[9px] font-bold text-slate-500 uppercase">KM / Litro (Est.)</span>
-          </div>
-          <div className="absolute top-0 right-0 p-2 opacity-5 scale-150 group-hover:scale-[2] transition-transform duration-700">
-            <span className="material-symbols-outlined text-4xl">local_gas_station</span>
-          </div>
-        </div>
+
       </div>
     </div>
   );

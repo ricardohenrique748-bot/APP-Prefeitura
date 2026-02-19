@@ -8,11 +8,11 @@ export enum AppScreen {
   SHIFT_START = 'SHIFT_START',
   SHIFT_END = 'SHIFT_END',
   TIRE_BULLETIN = 'TIRE_BULLETIN',
-  FUEL_ENTRY = 'FUEL_ENTRY',
+
   COST_CENTERS = 'COST_CENTERS',
   OS_CREATE = 'OS_CREATE',
   OS_CONTROL = 'OS_CONTROL',
-  FUEL_CONTROL = 'FUEL_CONTROL',
+
   USER_MANAGEMENT = 'USER_MANAGEMENT',
   SUPPLIER_MANAGEMENT = 'SUPPLIER_MANAGEMENT',
   BACKLOG = 'BACKLOG',
@@ -66,7 +66,7 @@ export interface Supplier {
   id: string;
   name: string;
   document: string;
-  category: 'PEÇAS' | 'SERVIÇOS' | 'COMBUSTÍVEL' | 'PNEUS';
+  category: 'PEÇAS' | 'SERVIÇOS' | 'PNEUS';
   contact: string;
   email: string;
   status: 'ACTIVE' | 'INACTIVE';
@@ -122,17 +122,4 @@ export interface OSDetail {
   previousPreventiveKm?: number;
 }
 
-export interface FuelEntryData {
-  id: string;
-  plate: string;
-  driver: string;
-  date: string;
-  costCenter: string;
-  item: string;
-  quantity: number;
-  unitPrice: number;
-  totalValue: number;
-  km?: number;
-  invoiceUrl?: string;
-  supplier?: string;
-}
+

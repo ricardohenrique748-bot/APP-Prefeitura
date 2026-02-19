@@ -91,7 +91,7 @@ const SupplierManagement: React.FC<SupplierManagementProps> = ({ onBack, isAdmin
   const getCategoryStyle = (cat: Supplier['category']) => {
     switch (cat) {
       case 'PEÇAS': return 'bg-amber-500/10 text-amber-500';
-      case 'COMBUSTÍVEL': return 'bg-primary/10 text-primary';
+
       case 'SERVIÇOS': return 'bg-indigo-500/10 text-indigo-500';
       case 'PNEUS': return 'bg-accent-success/10 text-accent-success';
       default: return 'bg-slate-100 text-slate-500';
@@ -219,7 +219,7 @@ const SupplierManagement: React.FC<SupplierManagementProps> = ({ onBack, isAdmin
                   <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value as any })} className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-xs font-bold outline-none focus:ring-2 focus:ring-primary appearance-none">
                     <option value="PEÇAS">PEÇAS</option>
                     <option value="SERVIÇOS">SERVIÇOS</option>
-                    <option value="COMBUSTÍVEL">COMBUSTÍVEL</option>
+
                     <option value="PNEUS">PNEUS</option>
                   </select>
                 </div>

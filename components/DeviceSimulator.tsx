@@ -17,7 +17,7 @@ const DeviceSimulator: React.FC<DeviceSimulatorProps> = ({ children, currentScre
     { icon: 'dashboard', label: 'Painel', screen: AppScreen.DASHBOARD, roles: ['ADMIN', 'GESTOR', 'OPERADOR', 'MOTORISTA'] },
     { icon: 'local_shipping', label: 'Frota', screen: AppScreen.FLEET_MANAGEMENT, roles: ['ADMIN'] },
     { icon: 'assignment', label: 'Ordens de Serviço', screen: AppScreen.OS_CONTROL, roles: ['ADMIN', 'GESTOR', 'OPERADOR', 'MOTORISTA'] },
-    { icon: 'local_gas_station', label: 'Combustível', screen: AppScreen.FUEL_CONTROL, roles: ['ADMIN', 'GESTOR', 'MOTORISTA'] },
+
     { icon: 'account_balance_wallet', label: 'Centros de Custo', screen: AppScreen.COST_CENTERS, roles: ['ADMIN'] },
     { icon: 'tire_repair', label: 'Pneus', screen: AppScreen.TIRE_BULLETIN, roles: ['ADMIN', 'GESTOR', 'OPERADOR'] },
     { icon: 'pending_actions', label: 'Backlog', screen: AppScreen.BACKLOG, roles: ['ADMIN', 'GESTOR', 'OPERADOR'] },

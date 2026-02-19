@@ -20,7 +20,7 @@ const Header: React.FC<HeaderProps> = ({ currentScreen, avatarUrl, userName }) =
     switch (currentScreen) {
       case AppScreen.DASHBOARD: return 'Smart Tech';
       case AppScreen.OS_CONTROL: return 'Controle de OS';
-      case AppScreen.FUEL_CONTROL: return 'Controle de Combustível';
+
       case AppScreen.SETTINGS: return 'Ajustes';
       default: return 'Smart Tech';
     }
