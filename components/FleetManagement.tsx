@@ -182,7 +182,18 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
 
       setVehicles(vehicles.map(v =>
         v.id === editingVehicle.id
-          ? { ...v, ...formData, plate: formData.plate.toUpperCase(), km: parseInt(formData.km) || 0, lastPreventiveKm: parseInt(formData.lastPreventiveKm) || undefined }
+          ? {
+            ...v,
+            ...formData,
+            plate: formData.plate.toUpperCase(),
+            km: parseInt(formData.km) || 0,
+            lastPreventiveKm: parseInt(formData.lastPreventiveKm) || undefined,
+            responsibleName: formData.responsibleName,
+            chassi: formData.chassi,
+            renavam: formData.renavam,
+            cnpj: formData.cnpj,
+            sector: formData.sector
+          }
           : v
       ));
       setEditingVehicle(null);
@@ -343,8 +354,11 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/30">
-                  <p className="text-[9px] uppercase font-bold text-slate-400 mb-1">Status Atual</p>
+                <div
+                  onClick={() => openEditModal(vehicle)}
+                  className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/30 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group/status"
+                >
+                  <p className="text-[9px] uppercase font-bold text-slate-400 mb-1 group-hover/status:text-primary transition-colors">Status Atual</p>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${getStatusStyle(vehicle.status)}`}>
                     {getStatusLabel(vehicle.status)}
                   </span>
