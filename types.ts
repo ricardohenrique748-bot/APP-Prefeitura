@@ -31,6 +31,11 @@ export interface Vehicle {
   year?: string;
   costCenter?: string;
   responsibleEmail?: string;
+  chassi?: string;
+  renavam?: string;
+  cnpj?: string;
+  sector?: string;
+  responsibleName?: string;
 }
 
 export interface OS {

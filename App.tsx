@@ -78,7 +78,12 @@ const App: React.FC = () => {
           km: v.km,
           lastPreventiveKm: v.last_preventive_km,
           costCenter: v.cost_center,
-          year: '2023'
+          year: v.year,
+          chassi: v.chassi,
+          renavam: v.renavam,
+          cnpj: v.cnpj,
+          sector: v.sector,
+          responsibleName: v.responsible_name
         }));
         setVehicles(currentVehicles);
       }

@@ -30,7 +30,12 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
     year: '',
     status: 'ACTIVE' as 'ACTIVE' | 'MAINTENANCE' | 'INACTIVE',
     costCenter: costCenters.length > 0 ? `${costCenters[0].id} - ${costCenters[0].name}` : '',
-    responsibleEmail: ''
+    responsibleEmail: '',
+    chassi: '',
+    renavam: '',
+    cnpj: '',
+    sector: '',
+    responsibleName: ''
   });
 
   // Helper para determinar o intervalo de preventiva por tipo
@@ -79,7 +84,12 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
       year: '',
       status: 'ACTIVE',
       costCenter: costCenters.length > 0 ? `${costCenters[0].id} - ${costCenters[0].name}` : '',
-      responsibleEmail: ''
+      responsibleEmail: '',
+      chassi: '',
+      renavam: '',
+      cnpj: '',
+      sector: '',
+      responsibleName: ''
     });
     setIsCustomType(false);
     setIsAdding(true);
@@ -96,7 +106,12 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
       year: vehicle.year || '',
       status: vehicle.status,
       costCenter: vehicle.costCenter || (costCenters.length > 0 ? `${costCenters[0].id} - ${costCenters[0].name}` : ''),
-      responsibleEmail: vehicle.responsibleEmail || ''
+      responsibleEmail: vehicle.responsibleEmail || '',
+      chassi: vehicle.chassi || '',
+      renavam: vehicle.renavam || '',
+      cnpj: vehicle.cnpj || '',
+      sector: vehicle.sector || '',
+      responsibleName: vehicle.responsibleName || ''
     });
     setIsCustomType(!vehicleTypes.includes(vehicle.type));
   };
@@ -111,7 +126,13 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
       status: formData.status,
       km: parseInt(formData.km) || 0,
       last_preventive_km: parseInt(formData.lastPreventiveKm) || 0,
-      cost_center: formData.costCenter
+      cost_center: formData.costCenter,
+      year: formData.year,
+      chassi: formData.chassi,
+      renavam: formData.renavam,
+      cnpj: formData.cnpj,
+      sector: formData.sector,
+      responsible_name: formData.responsibleName
     };
 
     if (isAdding) {
@@ -136,8 +157,13 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
           km: data[0].km,
           lastPreventiveKm: data[0].last_preventive_km,
           costCenter: data[0].cost_center,
-          year: formData.year,
-          responsibleEmail: formData.responsibleEmail
+          year: data[0].year,
+          responsibleEmail: formData.responsibleEmail,
+          chassi: data[0].chassi,
+          renavam: data[0].renavam,
+          cnpj: data[0].cnpj,
+          sector: data[0].sector,
+          responsibleName: data[0].responsible_name
         };
         setVehicles([newVehicle, ...vehicles]);
       }
@@ -286,10 +312,20 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
                   <div>
                     <h2 className="text-lg font-black tracking-tight leading-none mb-1 text-slate-900 dark:text-white">{vehicle.plate}</h2>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{vehicle.model} • {vehicle.year}</p>
-                    {vehicle.responsibleEmail && (
-                      <div className="flex items-center gap-1 mt-1 opacity-70">
-                        <span className="material-symbols-outlined text-[10px] text-primary">mail</span>
-                        <span className="text-[9px] font-bold truncate max-w-[150px]">{vehicle.responsibleEmail}</span>
+                    {(vehicle.responsibleEmail || vehicle.responsibleName) && (
+                      <div className="flex flex-col gap-0.5 mt-1 opacity-70">
+                        {vehicle.responsibleName && (
+                          <div className="flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[10px] text-primary">person</span>
+                            <span className="text-[9px] font-bold truncate max-w-[150px]">{vehicle.responsibleName}</span>
+                          </div>
+                        )}
+                        {vehicle.responsibleEmail && (
+                          <div className="flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[10px] text-primary">mail</span>
+                            <span className="text-[9px] font-bold truncate max-w-[150px]">{vehicle.responsibleEmail}</span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -362,6 +398,33 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
                 <input required type="text" placeholder="Ex: Scania R450" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary" />
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Chassi</label>
+                  <input type="text" placeholder="Chassi..." value={formData.chassi} onChange={(e) => setFormData({ ...formData, chassi: e.target.value })} className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Renavam</label>
+                  <input type="text" placeholder="Renavam..." value={formData.renavam} onChange={(e) => setFormData({ ...formData, renavam: e.target.value })} className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">CNPJ do Veículo</label>
+                  <input type="text" placeholder="CNPJ..." value={formData.cnpj} onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })} className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Setor</label>
+                  <input type="text" placeholder="Ex: BOLSA" value={formData.sector} onChange={(e) => setFormData({ ...formData, sector: e.target.value })} className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Nome do Responsável</label>
+                <input type="text" placeholder="Nome do motorista/responsável" value={formData.responsibleName} onChange={(e) => setFormData({ ...formData, responsibleName: e.target.value })} className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary" />
+              </div>
+
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">E-mail do Responsável</label>
                 <input
@@ -386,6 +449,21 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
               </div>
 
               <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Situação / Status</label>
+                  <div className="relative">
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                      className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary appearance-none"
+                    >
+                      <option value="ACTIVE">Operacional</option>
+                      <option value="MAINTENANCE">Manutenção</option>
+                      <option value="INACTIVE">Inativo</option>
+                    </select>
+                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">expand_more</span>
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Tipo de Veículo</label>
                   {!isCustomType ? (
@@ -432,9 +510,16 @@ const FleetManagement: React.FC<FleetManagementProps> = ({ onBack, onAction, veh
                     </div>
                   )}
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">KM Atual</label>
                   <input required type="number" placeholder="0" value={formData.km} onChange={(e) => setFormData({ ...formData, km: e.target.value })} className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-mono outline-none focus:ring-2 focus:ring-primary" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Últ. Preventiva (KM)</label>
+                  <input type="number" placeholder="0" value={formData.lastPreventiveKm} onChange={(e) => setFormData({ ...formData, lastPreventiveKm: e.target.value })} className="w-full h-14 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-2xl px-4 text-sm font-mono outline-none focus:ring-2 focus:ring-primary" />
                 </div>
               </div>
 
