@@ -23,17 +23,36 @@ import SupplierQuote from './components/SupplierQuote';
 import ChecklistHistory from './components/ChecklistHistory';
 import { supabase } from './services/supabaseClient';
 
-
-
-
-
-// DEFAULT_COST_CENTERS removed to force Supabase usage
-
 const App: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('smart_tech_user');
-    return saved ? JSON.parse(saved) : null;
+  // Inicialização de estados a partir do Cache (LocalStorage) para evitar atrasos visuais
+  const [costCenters, setCostCenters] = useState<CostCenter[]>(() => {
+    const cached = localStorage.getItem('smart_tech_cost_centers');
+    return cached ? JSON.parse(cached) : [];
   });
+  const [vehicles, setVehicles] = useState<Vehicle[]>(() => {
+    const cached = localStorage.getItem('smart_tech_vehicles');
+    return cached ? JSON.parse(cached) : [];
+  });
+  const [orders, setOrders] = useState<OSDetail[]>(() => {
+    const cached = localStorage.getItem('smart_tech_orders');
+    return cached ? JSON.parse(cached) : [];
+  });
+  const [shifts, setShifts] = useState<Shift[]>(() => {
+    const cached = localStorage.getItem('smart_tech_shifts');
+    return cached ? JSON.parse(cached) : [];
+  });
+  const [activeShifts, setActiveShifts] = useState<string[]>(() => {
+    const cached = localStorage.getItem('smart_tech_active_shifts');
+    return cached ? JSON.parse(cached) : [];
+  });
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+
+  const [loading, setLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const stored = localStorage.getItem('smart_tech_user');
+    return stored ? JSON.parse(stored) : null;
+  });
+
   const isAuthenticated = !!currentUser;
   const [currentScreen, setCurrentScreen] = useState<AppScreen>(AppScreen.DASHBOARD);
 
@@ -46,14 +65,7 @@ const App: React.FC = () => {
     return saved ? saved === 'dark' : false;
   });
 
-  const [costCenters, setCostCenters] = useState<CostCenter[]>([]);
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [orders, setOrders] = useState<OSDetail[]>([]);
-  const [shifts, setShifts] = useState<Shift[]>([]);
-  const [activeShifts, setActiveShifts] = useState<string[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-
-  // Carregar dados do Supabase ao iniciar
+  // Carregar dados de deep link se houver
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const screenParam = params.get('screen');
@@ -62,35 +74,17 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Sincronização completa com Supabase
   const startSync = async () => {
+    if (!isAuthenticated) return;
+    
     try {
-      // Buscar Veículos
-      // Buscar Veículos
-      const { data: vData } = await supabase.from('vehicles').select('*');
-      let currentVehicles: Vehicle[] = [];
-      if (vData && vData.length > 0) {
-        currentVehicles = vData.map((v: any) => ({
-          id: v.id,
-          plate: v.plate,
-          model: v.model,
-          type: v.type,
-          status: v.status,
-          km: v.km,
-          lastPreventiveKm: v.last_preventive_km,
-          costCenter: v.cost_center,
-          year: v.year,
-          chassi: v.chassi,
-          renavam: v.renavam,
-          cnpj: v.cnpj,
-          sector: v.sector,
-          responsibleName: v.responsible_name
-        }));
-        setVehicles(currentVehicles);
-      }
+      setLoading(true);
+      console.log("Iniciando sincronização Smart Tech...");
 
-      // Buscar Centros de Custo (NOVO)
-      const { data: ccData } = await supabase.from('cost_centers').select('*');
-      if (ccData && ccData.length > 0) {
+      // 1. Centros de Custo
+      const { data: ccData, error: ccError } = await supabase.from('cost_centers').select('*');
+      if (!ccError && ccData) {
         const mappedCenters = ccData.map((c: any) => ({
           id: c.id.toString(),
           name: c.name,
@@ -101,38 +95,57 @@ const App: React.FC = () => {
         setCostCenters(mappedCenters);
       }
 
-      // Buscar OS
-      const { data: oData } = await supabase.from('service_orders').select('*');
-      if (oData) {
+      // 2. Veículos
+      const { data: vData, error: vError } = await supabase.from('vehicles').select('*');
+      if (!vError && vData) {
+        const mappedVehicles = vData.map((v: any) => ({
+          id: v.id.toString(),
+          plate: v.plate,
+          model: v.model,
+          type: v.type,
+          status: v.status,
+          km: Number(v.km),
+          lastPreventiveKm: v.last_preventive_km,
+          costCenter: v.cost_center,
+          year: v.year,
+          chassi: v.chassi,
+          renavam: v.renavam,
+          cnpj: v.cnpj,
+          sector: v.sector,
+          responsibleName: v.responsible_name
+        }));
+        setVehicles(mappedVehicles);
+      }
+
+      // 3. Ordens de Serviço
+      const { data: oData, error: oError } = await supabase.from('service_orders').select('*');
+      if (!oError && oData) {
         const mappedOrders = oData.map((o: any) => ({
-          id: o.id,
+          id: o.id.toString(),
           plate: o.plate,
           task: o.description || 'Manutenção Diversa',
-          taskType: o.type,
+          taskType: o.type as any || 'Corretiva',
           status: o.status,
           priority: o.priority,
           time: new Date(o.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
           mechanic: o.mechanic || 'Interno',
           description: o.description || '',
           costCenter: o.cost_center || 'Geral',
-          openedAt: o.opened_at,
-          createdAt: o.created_at,
-          isPaid: o.is_paid,
+          openedAt: o.created_at,
+          isPaid: o.is_paid || false,
           costValue: Number(o.cost) || 0,
           invoiceUrl: o.invoice_url,
           quoteUrl: o.quote_url,
-          previousPreventiveKm: o.previous_preventive_km
-        }));
+          previousPreventiveKm: o?.previous_preventive_km
+        })).sort((a, b) => new Date(b.openedAt).getTime() - new Date(a.openedAt).getTime());
         setOrders(mappedOrders);
       }
 
-
-
-      // Buscar Turnos (Shifts)
-      const { data: sData } = await supabase.from('shifts').select('*');
-      if (sData) {
+      // 4. Turnos
+      const { data: sData, error: sError } = await supabase.from('shifts').select('*').order('start_time', { ascending: false });
+      if (!sError && sData) {
         const mappedShifts = sData.map((s: any) => ({
-          id: s.id,
+          id: s.id.toString(),
           vehicle_id: s.vehicle_id,
           driverName: s.driver_name,
           startTime: s.start_time,
@@ -145,17 +158,16 @@ const App: React.FC = () => {
           status: s.status
         }));
         setShifts(mappedShifts);
-      }
-
-      // Buscar Fornecedores
-      const { data: supData } = await supabase.from('suppliers').select('*');
-      if (supData) {
-        setSuppliers(supData as Supplier[]);
+        
+        // Atualizar veículos ativos
+        const openVehicles = mappedShifts.filter(s => s.status === 'OPEN').map(s => s.vehicle_id);
+        setActiveShifts(openVehicles);
       }
 
     } catch (error) {
-      console.error("Erro ao buscar dados do Supabase:", error);
-      alert('Erro ao sincronizar dados. Verifique sua conexão.');
+      console.error("Falha na sincronização:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -165,31 +177,13 @@ const App: React.FC = () => {
     }
   }, [isAuthenticated]);
 
-  // Cálculos de Centros de Custo em tempo real
-  const centersWithStats = useMemo(() => {
-    return costCenters.map(center => {
-      const osTotal = orders
-        .filter(o => o.costCenter.includes(center.id))
-        .reduce((sum, o) => sum + (o.costValue || 0), 0);
-
-      const consumed = osTotal;
-      const progress = center.budget > 0 ? Math.min(100, Math.round((consumed / center.budget) * 100)) : 0;
-
-      return {
-        ...center,
-        consumedValue: consumed,
-        consumedStr: consumed.toLocaleString('pt-BR'),
-        availableStr: (center.budget - consumed).toLocaleString('pt-BR'),
-        progress,
-        warning: progress >= 90
-      };
-    });
-  }, [costCenters, orders]);
-
+  // Persistência local redundante
   useEffect(() => { localStorage.setItem('smart_tech_cost_centers', JSON.stringify(costCenters)); }, [costCenters]);
   useEffect(() => { localStorage.setItem('smart_tech_vehicles', JSON.stringify(vehicles)); }, [vehicles]);
   useEffect(() => { localStorage.setItem('smart_tech_orders', JSON.stringify(orders)); }, [orders]);
+  useEffect(() => { localStorage.setItem('smart_tech_shifts', JSON.stringify(shifts)); }, [shifts]);
   useEffect(() => { localStorage.setItem('smart_tech_active_shifts', JSON.stringify(activeShifts)); }, [activeShifts]);
+  
   useEffect(() => {
     if (currentUser) {
       localStorage.setItem('smart_tech_user', JSON.stringify(currentUser));
@@ -203,6 +197,19 @@ const App: React.FC = () => {
     else { document.documentElement.classList.remove('dark'); localStorage.setItem('smart_tech_theme', 'light'); }
   }, [isDarkMode]);
 
+  // Logout seguro limpando cache específico
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    localStorage.removeItem('smart_tech_user');
+    localStorage.removeItem('smart_tech_cost_centers');
+    localStorage.removeItem('smart_tech_vehicles');
+    localStorage.removeItem('smart_tech_orders');
+    localStorage.removeItem('smart_tech_shifts');
+    localStorage.removeItem('smart_tech_active_shifts');
+    setCurrentScreen(AppScreen.LOGIN);
+  };
+
   const updateVehicleKm = async (id: string, newKm: number) => {
     try {
       const { error } = await supabase
@@ -211,10 +218,9 @@ const App: React.FC = () => {
         .eq('id', id);
 
       if (error) throw error;
-
       setVehicles(prev => prev.map(v => v.id === id ? { ...v, km: newKm } : v));
     } catch (error) {
-      console.error("Erro ao atualizar KM no Supabase:", error);
+      console.error("Erro ao atualizar KM:", error);
     }
   };
 
@@ -230,22 +236,14 @@ const App: React.FC = () => {
       signatureUrl: shiftData.signatureUrl,
       status: 'OPEN'
     };
-
     setShifts(prev => [newShift, ...prev]);
-
-    if (!activeShifts.includes(shiftData.vehicle_id)) {
-      setActiveShifts(prev => [...prev, shiftData.vehicle_id]);
-    }
+    setActiveShifts(prev => [...prev, shiftData.vehicle_id]);
   };
 
   const handleFinishShift = (vehicleId: string) => {
     setShifts(prev => prev.map(s => {
       if (s.vehicle_id === vehicleId && s.status === 'OPEN') {
-        return {
-          ...s,
-          endTime: new Date().toISOString(),
-          status: 'CLOSED'
-        };
+        return { ...s, endTime: new Date().toISOString(), status: 'CLOSED' };
       }
       return s;
     }));
@@ -260,7 +258,33 @@ const App: React.FC = () => {
     setShifts(prev => prev.filter(s => s.id !== id));
   };
 
-  // Filtragem de Dados por Perfil
+  // Cálculos de Centros de Custo (Enrichment)
+  const centersWithStats = useMemo(() => {
+    return costCenters.map(center => {
+      const osTotal = orders
+        .filter(o => {
+          if (!o.costCenter) return false;
+          const osCCId = o.costCenter.split(' ')[0];
+          return osCCId === center.id;
+        })
+        .reduce((sum, o) => sum + (o.costValue || 0), 0);
+
+      const vehicleCount = vehicles.filter(v => v.costCenter && v.costCenter.split(' ')[0] === center.id).length;
+      const progress = center.budget > 0 ? Math.min(100, Math.round((osTotal / center.budget) * 100)) : 0;
+
+      return {
+        ...center,
+        consumedValue: osTotal,
+        consumedStr: osTotal.toLocaleString('pt-BR'),
+        availableStr: (center.budget - osTotal).toLocaleString('pt-BR'),
+        progress,
+        warning: progress >= 90,
+        vehicles: vehicleCount
+      };
+    }).sort((a, b) => b.id.localeCompare(a.id, undefined, { numeric: true }));
+  }, [costCenters, orders, vehicles]);
+
+  // Filtros Globais por Permissão
   const { filteredOrders, filteredVehicles, filteredShifts, filteredCenters } = useMemo(() => {
     if (!currentUser || currentUser.role === 'ADMIN') {
       return {
@@ -272,18 +296,10 @@ const App: React.FC = () => {
     }
 
     const userCCId = currentUser.costCenter ? currentUser.costCenter.split(' ')[0] : '';
-
-    // Se não tiver centro de custo vinculado, não vê nada de dados operacionais
     if (!userCCId) {
-      return {
-        filteredOrders: [],
-        filteredVehicles: [],
-        filteredShifts: [],
-        filteredCenters: []
-      };
+      return { filteredOrders: [], filteredVehicles: [], filteredShifts: [], filteredCenters: [] };
     }
 
-    // Helper para match seguro de centro de custo (ID exato)
     const matchCC = (ccString?: string) => {
       if (!ccString) return false;
       return ccString.split(' ')[0] === userCCId;
@@ -296,33 +312,12 @@ const App: React.FC = () => {
         const vehicle = vehicles.find(v => v.id === s.vehicle_id);
         return matchCC(vehicle?.costCenter);
       }),
-      filteredCenters: centersWithStats.filter(c => matchCC(c.id + ' ')) // c.id é "3", matchCC espera "3 - Name" ou similar
-        // Ajuste: centersWithStats usa c.id que é o número puro.
-        // Vamos simplificar o match para o ID.
-        || centersWithStats.filter(c => c.id === userCCId)
+      filteredCenters: centersWithStats.filter(c => c.id === userCCId)
     };
   }, [currentUser, orders, vehicles, shifts, centersWithStats]);
 
-
   const handleResolveBacklog = async (id: string) => {
-    // Optimistic update for mock items or checklist items
-    if (id.startsWith('m')) return; // Mock items handled by Backlog's local state for now
-
-    // For real shifts, try to clear the damage report logic
-    const shift = shifts.find(s => s.id === id);
-    if (shift) {
-      // Update local state to remove damage report immediately
-      setShifts(prev => prev.map(s => s.id === id ? { ...s, damageReport: undefined } : s));
-
-      // Update Supabase
-      try {
-        await supabase.from('shifts')
-          .update({ damage_report: null })
-          .eq('id', id);
-      } catch (err) {
-        console.error("Failed to resolve backlog item on backend", err);
-      }
-    }
+    setShifts(prev => prev.map(s => s.id === id ? { ...s, damageReport: undefined } : s));
   };
 
   const renderScreen = () => {
@@ -330,71 +325,31 @@ const App: React.FC = () => {
       case AppScreen.DASHBOARD:
         return <Dashboard orders={filteredOrders} vehicles={filteredVehicles} costCenters={filteredCenters} onAction={(screen) => setCurrentScreen(screen)} />;
       case AppScreen.SHIFT_START:
-        return <ShiftStart
-          vehicles={filteredVehicles}
-          onUpdateKm={updateVehicleKm}
-          onBack={() => setCurrentScreen(AppScreen.DASHBOARD)}
-          activeShifts={activeShifts}
-          onStartShift={handleStartShift}
-          onFinishShift={handleFinishShift}
-        />;
-      case AppScreen.SHIFT_END:
-        return <ShiftEnd onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} />;
+        return <ShiftStart vehicles={filteredVehicles} onUpdateKm={updateVehicleKm} onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} activeShifts={activeShifts} onStartShift={handleStartShift} onFinishShift={handleFinishShift} />;
       case AppScreen.OS_CONTROL:
         return <OSControl orders={filteredOrders} setOrders={setOrders} setVehicles={setVehicles} onAction={(screen) => setCurrentScreen(screen)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.OS_CREATE:
-        return <OSCreate
-          vehicles={filteredVehicles}
-          setVehicles={setVehicles}
-          setOrders={setOrders}
-          onBack={() => setCurrentScreen(AppScreen.OS_CONTROL)}
-          userCostCenter={currentUser?.role !== 'ADMIN' ? currentUser?.costCenter : undefined}
-        />;
+        return <OSCreate vehicles={filteredVehicles} setVehicles={setVehicles} setOrders={setOrders} onBack={() => setCurrentScreen(AppScreen.OS_CONTROL)} userCostCenter={currentUser?.role !== 'ADMIN' ? currentUser?.costCenter : undefined} />;
       case AppScreen.COST_CENTERS:
         return <CostCenters centers={filteredCenters} setCenters={setCostCenters} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.FLEET_MANAGEMENT:
-        return <FleetManagement vehicles={filteredVehicles} setVehicles={setVehicles} costCenters={currentUser?.role === 'ADMIN' ? costCenters : costCenters.filter(c => (currentUser?.costCenter || '').startsWith(c.id))} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
+        return <FleetManagement vehicles={filteredVehicles} setVehicles={setVehicles} costCenters={costCenters} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.REPORTS:
         return <Reports vehicles={filteredVehicles} orders={filteredOrders} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.TIRE_BULLETIN:
         return <TireBulletin vehicles={filteredVehicles} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.USER_MANAGEMENT:
-        // Gestor pode ver usuários, mas idealmente filtraria tb. O pedido diz "ver só info lançada para seu centro de custo", usarios são dados do sistema. Vamos manter full por enquanto ou filtrar?
-        // "O gestor vai ter acesso ao seu centro de custo"
         return <UserManagement currentUserRole={currentUser?.role || 'OPERADOR'} costCenters={costCenters} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.SUPPLIER_MANAGEMENT:
         return <SupplierManagement onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.BACKLOG:
-        return <Backlog
-          shifts={filteredShifts}
-          onAction={(screen) => setCurrentScreen(screen)}
-          onBack={() => setCurrentScreen(AppScreen.DASHBOARD)}
-          isAdmin={currentUser?.role === 'ADMIN'}
-          onResolve={handleResolveBacklog}
-        />;
+        return <Backlog shifts={filteredShifts} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} isAdmin={currentUser?.role === 'ADMIN'} onResolve={handleResolveBacklog} />;
       case AppScreen.SUPPLIER_QUOTE:
         return <SupplierQuote onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} />;
       case AppScreen.CHECKLIST_HISTORY:
-        return <ChecklistHistory
-          shifts={filteredShifts}
-          vehicles={filteredVehicles}
-          onBack={() => setCurrentScreen(AppScreen.SETTINGS)}
-          onEdit={handleUpdateShift}
-          onDelete={handleDeleteShift}
-          isAdmin={currentUser?.role === 'ADMIN'}
-        />;
+        return <ChecklistHistory shifts={filteredShifts} vehicles={filteredVehicles} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} onEdit={handleUpdateShift} onDelete={handleDeleteShift} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.SETTINGS:
-        return <Settings
-          isDarkMode={isDarkMode}
-          onToggleTheme={() => setIsDarkMode(!isDarkMode)}
-          onAction={(screen) => setCurrentScreen(screen)}
-          avatarUrl={userAvatar}
-          onAvatarChange={(nav) => setUserAvatar(nav)}
-          onLogout={() => { setCurrentUser(null); setCurrentScreen(AppScreen.DASHBOARD); localStorage.removeItem('smart_tech_user'); }}
-          userRole={currentUser?.role || 'OPERADOR'}
-          userName={currentUser?.name || 'Administrador'}
-          onSync={startSync}
-        />;
+        return <Settings isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode(!isDarkMode)} onAction={(screen) => setCurrentScreen(screen)} avatarUrl={userAvatar} onAvatarChange={(nav) => setUserAvatar(nav)} onLogout={handleLogout} userRole={currentUser?.role || 'OPERADOR'} userName={currentUser?.name || 'Administrador'} onSync={startSync} />;
       default:
         return <Dashboard orders={filteredOrders} vehicles={filteredVehicles} onAction={(screen) => setCurrentScreen(screen)} costCenters={filteredCenters} />;
     }
@@ -411,7 +366,7 @@ const App: React.FC = () => {
     >
       <div className="flex flex-col h-full min-h-full bg-background-light dark:bg-background-dark w-full overflow-x-hidden relative transition-colors duration-300">
         {!isAuthenticated && currentScreen !== AppScreen.SUPPLIER_QUOTE ? (
-          <Login onLogin={(user) => setCurrentUser(user)} isDarkMode={isDarkMode} />
+          <Login onLogin={(user) => { setCurrentUser(user); localStorage.setItem('smart_tech_user', JSON.stringify(user)); }} isDarkMode={isDarkMode} />
         ) : (
           <>
             <div className="md:hidden shrink-0">
