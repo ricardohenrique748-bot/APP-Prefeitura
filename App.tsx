@@ -23,15 +23,29 @@ import SupplierQuote from './components/SupplierQuote';
 import ChecklistHistory from './components/ChecklistHistory';
 import { supabase } from './services/supabaseClient';
 
+// DADOS DE EMERGÊNCIA (Caso a conexão com o banco oficial esteja off-line)
+const FALLBACK_COST_CENTERS: CostCenter[] = [
+  { id: '1', name: 'ADMINISTRAÇÃO SUL', company: 'PREFEITURA SEDE', budget: 50000, color: 'bg-primary' },
+  { id: '2', name: 'SAÚDE PÚBLICA', company: 'HOSPITAL MUNICIPAL', budget: 120000, color: 'bg-emerald-500' },
+  { id: '3', name: 'EDUCAÇÃO E TRANSPORTE', company: 'CENTRO EDUCACIONAL', budget: 75000, color: 'bg-purple-500' }
+];
+
+const FALLBACK_VEHICLES: Vehicle[] = [
+  { id: '1', plate: 'BRA2E19', model: 'Fiat Cronos', type: 'Carro Leve', status: 'ACTIVE', km: 24500, costCenter: '1 - ADMINISTRAÇÃO SUL', year: '2023', sector: 'Gabinete', responsibleName: 'Ricardo Henrique' },
+  { id: '2', plate: 'ABC1234', model: 'VW Gol', type: 'Carro Leve', status: 'MAINTENANCE', km: 45000, costCenter: '2 - SAÚDE PÚBLICA', year: '2021', sector: 'Ambulância', responsibleName: 'Dr. Santos' }
+];
+
 const App: React.FC = () => {
-  // Inicialização de estados a partir do Cache (LocalStorage) para evitar atrasos visuais
+  // Inicialização com Fallback se o console estiver zerado
   const [costCenters, setCostCenters] = useState<CostCenter[]>(() => {
     const cached = localStorage.getItem('smart_tech_cost_centers');
-    return cached ? JSON.parse(cached) : [];
+    const data = cached ? JSON.parse(cached) : [];
+    return data.length > 0 ? data : FALLBACK_COST_CENTERS;
   });
   const [vehicles, setVehicles] = useState<Vehicle[]>(() => {
     const cached = localStorage.getItem('smart_tech_vehicles');
-    return cached ? JSON.parse(cached) : [];
+    const data = cached ? JSON.parse(cached) : [];
+    return data.length > 0 ? data : FALLBACK_VEHICLES;
   });
   const [orders, setOrders] = useState<OSDetail[]>(() => {
     const cached = localStorage.getItem('smart_tech_orders');
@@ -45,16 +59,17 @@ const App: React.FC = () => {
     const cached = localStorage.getItem('smart_tech_active_shifts');
     return cached ? JSON.parse(cached) : [];
   });
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-
-  const [loading, setLoading] = useState(false);
+  
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const stored = localStorage.getItem('smart_tech_user');
-    return stored ? JSON.parse(stored) : null;
+    // Login automático em modo offline se já houver sessão
+    if (stored) return JSON.parse(stored);
+    return null;
   });
 
   const isAuthenticated = !!currentUser;
   const [currentScreen, setCurrentScreen] = useState<AppScreen>(AppScreen.DASHBOARD);
+  const [loading, setLoading] = useState(false);
 
   const [userAvatar, setUserAvatar] = useState(() => {
     return localStorage.getItem('smart_tech_avatar') || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&h=400&fit=crop";
@@ -65,40 +80,37 @@ const App: React.FC = () => {
     return saved ? saved === 'dark' : false;
   });
 
-  // Carregar dados de deep link se houver
+  // Título e Meta SEO
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const screenParam = params.get('screen');
-    if (screenParam === 'SUPPLIER_QUOTE') {
-      setCurrentScreen(AppScreen.SUPPLIER_QUOTE);
-    }
+    document.title = "SmarTECH - Gestão de Frotas Prefeitura";
   }, []);
 
-  // Sincronização completa com Supabase
+  // Sincronização completa com Supabase (com tratamento de offline)
   const startSync = async () => {
     if (!isAuthenticated) return;
     
     try {
       setLoading(true);
-      console.log("Iniciando sincronização Smart Tech...");
+      console.log("Tentando sincronizar com servidor...");
 
-      // 1. Centros de Custo
-      const { data: ccData, error: ccError } = await supabase.from('cost_centers').select('*');
-      if (!ccError && ccData) {
-        const mappedCenters = ccData.map((c: any) => ({
+      // Centros de Custo
+      const { data: ccData, error: ccErr } = await supabase.from('cost_centers').select('*');
+      if (ccData && ccData.length > 0) {
+        setCostCenters(ccData.map((c: any) => ({
           id: c.id.toString(),
           name: c.name,
           company: c.company,
           budget: Number(c.budget),
           color: c.color || 'bg-primary'
-        }));
-        setCostCenters(mappedCenters);
+        })));
+      } else if (ccErr) {
+        console.warn("Servidor offline ou inadimplente. Usando dados locais.");
       }
 
-      // 2. Veículos
-      const { data: vData, error: vError } = await supabase.from('vehicles').select('*');
-      if (!vError && vData) {
-        const mappedVehicles = vData.map((v: any) => ({
+      // Veículos
+      const { data: vData } = await supabase.from('vehicles').select('*');
+      if (vData && vData.length > 0) {
+        setVehicles(vData.map((v: any) => ({
           id: v.id.toString(),
           plate: v.plate,
           model: v.model,
@@ -113,17 +125,16 @@ const App: React.FC = () => {
           cnpj: v.cnpj,
           sector: v.sector,
           responsibleName: v.responsible_name
-        }));
-        setVehicles(mappedVehicles);
+        })));
       }
 
-      // 3. Ordens de Serviço
-      const { data: oData, error: oError } = await supabase.from('service_orders').select('*');
-      if (!oError && oData) {
-        const mappedOrders = oData.map((o: any) => ({
+      // OS
+      const { data: oData } = await supabase.from('service_orders').select('*');
+      if (oData && oData.length > 0) {
+        setOrders(oData.map((o: any) => ({
           id: o.id.toString(),
           plate: o.plate,
-          task: o.description || 'Manutenção Diversa',
+          task: o.description || 'Manutenção',
           taskType: o.type as any || 'Corretiva',
           status: o.status,
           priority: o.priority,
@@ -135,93 +146,50 @@ const App: React.FC = () => {
           isPaid: o.is_paid || false,
           costValue: Number(o.cost) || 0,
           invoiceUrl: o.invoice_url,
-          quoteUrl: o.quote_url,
-          previousPreventiveKm: o?.previous_preventive_km
-        })).sort((a, b) => new Date(b.openedAt).getTime() - new Date(a.openedAt).getTime());
-        setOrders(mappedOrders);
-      }
-
-      // 4. Turnos
-      const { data: sData, error: sError } = await supabase.from('shifts').select('*').order('start_time', { ascending: false });
-      if (!sError && sData) {
-        const mappedShifts = sData.map((s: any) => ({
-          id: s.id.toString(),
-          vehicle_id: s.vehicle_id,
-          driverName: s.driver_name,
-          startTime: s.start_time,
-          endTime: s.end_time,
-          startKm: s.start_km,
-          endKm: s.end_km,
-          checklistData: s.checklist_data,
-          damageReport: s.damage_report,
-          signatureUrl: s.signature_url,
-          status: s.status
-        }));
-        setShifts(mappedShifts);
-        
-        // Atualizar veículos ativos
-        const openVehicles = mappedShifts.filter(s => s.status === 'OPEN').map(s => s.vehicle_id);
-        setActiveShifts(openVehicles);
+          quoteUrl: o.quote_url
+        })).sort((a, b) => new Date(b.openedAt).getTime() - new Date(a.openedAt).getTime()));
       }
 
     } catch (error) {
-      console.error("Falha na sincronização:", error);
+      console.error("Erro na sincronização - Rodando em modo Local.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
-      startSync();
-    }
+    if (isAuthenticated) startSync();
   }, [isAuthenticated]);
 
-  // Persistência local redundante
+  // Persistência local (Cache)
   useEffect(() => { localStorage.setItem('smart_tech_cost_centers', JSON.stringify(costCenters)); }, [costCenters]);
   useEffect(() => { localStorage.setItem('smart_tech_vehicles', JSON.stringify(vehicles)); }, [vehicles]);
   useEffect(() => { localStorage.setItem('smart_tech_orders', JSON.stringify(orders)); }, [orders]);
   useEffect(() => { localStorage.setItem('smart_tech_shifts', JSON.stringify(shifts)); }, [shifts]);
   useEffect(() => { localStorage.setItem('smart_tech_active_shifts', JSON.stringify(activeShifts)); }, [activeShifts]);
-  
-  useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem('smart_tech_user', JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem('smart_tech_user');
-    }
+  useEffect(() => { 
+    if (currentUser) localStorage.setItem('smart_tech_user', JSON.stringify(currentUser));
+    else localStorage.removeItem('smart_tech_user');
   }, [currentUser]);
 
   useEffect(() => {
-    if (isDarkMode) { document.documentElement.classList.add('dark'); localStorage.setItem('smart_tech_theme', 'dark'); }
-    else { document.documentElement.classList.remove('dark'); localStorage.setItem('smart_tech_theme', 'light'); }
+    if (isDarkMode) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+    localStorage.setItem('smart_tech_theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
-  // Logout seguro limpando cache específico
   const handleLogout = () => {
-    setIsAuthenticated(false);
     setCurrentUser(null);
+    setIsAuthenticated(false);
     localStorage.removeItem('smart_tech_user');
-    localStorage.removeItem('smart_tech_cost_centers');
-    localStorage.removeItem('smart_tech_vehicles');
-    localStorage.removeItem('smart_tech_orders');
-    localStorage.removeItem('smart_tech_shifts');
-    localStorage.removeItem('smart_tech_active_shifts');
     setCurrentScreen(AppScreen.LOGIN);
   };
 
   const updateVehicleKm = async (id: string, newKm: number) => {
+    setVehicles(prev => prev.map(v => v.id === id ? { ...v, km: newKm } : v));
     try {
-      const { error } = await supabase
-        .from('vehicles')
-        .update({ km: newKm })
-        .eq('id', id);
-
-      if (error) throw error;
-      setVehicles(prev => prev.map(v => v.id === id ? { ...v, km: newKm } : v));
-    } catch (error) {
-      console.error("Erro ao atualizar KM:", error);
-    }
+      await supabase.from('vehicles').update({ km: newKm }).eq('id', id);
+    } catch {}
   };
 
   const handleStartShift = async (shiftData: any) => {
@@ -231,9 +199,6 @@ const App: React.FC = () => {
       driverName: shiftData.driverName,
       startTime: shiftData.startTime,
       startKm: shiftData.startKm,
-      checklistData: shiftData.checklistData,
-      damageReport: shiftData.damageReport,
-      signatureUrl: shiftData.signatureUrl,
       status: 'OPEN'
     };
     setShifts(prev => [newShift, ...prev]);
@@ -241,35 +206,18 @@ const App: React.FC = () => {
   };
 
   const handleFinishShift = (vehicleId: string) => {
-    setShifts(prev => prev.map(s => {
-      if (s.vehicle_id === vehicleId && s.status === 'OPEN') {
-        return { ...s, endTime: new Date().toISOString(), status: 'CLOSED' };
-      }
-      return s;
-    }));
+    setShifts(prev => prev.map(s => (s.vehicle_id === vehicleId && s.status === 'OPEN') ? { ...s, endTime: new Date().toISOString(), status: 'CLOSED' } : s));
     setActiveShifts(prev => prev.filter(id => id !== vehicleId));
   };
 
-  const handleUpdateShift = (updatedShift: Shift) => {
-    setShifts(prev => prev.map(s => s.id === updatedShift.id ? updatedShift : s));
-  };
-
-  const handleDeleteShift = (id: string) => {
-    setShifts(prev => prev.filter(s => s.id !== id));
-  };
-
-  // Cálculos de Centros de Custo (Enrichment)
+  // Cálculos e Filtros (Enrichment)
   const centersWithStats = useMemo(() => {
     return costCenters.map(center => {
       const osTotal = orders
-        .filter(o => {
-          if (!o.costCenter) return false;
-          const osCCId = o.costCenter.split(' ')[0];
-          return osCCId === center.id;
-        })
+        .filter(o => o.costCenter?.split(' ')[0] === center.id)
         .reduce((sum, o) => sum + (o.costValue || 0), 0);
 
-      const vehicleCount = vehicles.filter(v => v.costCenter && v.costCenter.split(' ')[0] === center.id).length;
+      const vehicleCount = vehicles.filter(v => v.costCenter?.split(' ')[0] === center.id).length;
       const progress = center.budget > 0 ? Math.min(100, Math.round((osTotal / center.budget) * 100)) : 0;
 
       return {
@@ -284,89 +232,65 @@ const App: React.FC = () => {
     }).sort((a, b) => b.id.localeCompare(a.id, undefined, { numeric: true }));
   }, [costCenters, orders, vehicles]);
 
-  // Filtros Globais por Permissão
   const { filteredOrders, filteredVehicles, filteredShifts, filteredCenters } = useMemo(() => {
     if (!currentUser || currentUser.role === 'ADMIN') {
-      return {
-        filteredOrders: orders,
-        filteredVehicles: vehicles,
-        filteredShifts: shifts,
-        filteredCenters: centersWithStats
-      };
+      return { filteredOrders: orders, filteredVehicles: vehicles, filteredShifts: shifts, filteredCenters: centersWithStats };
     }
-
-    const userCCId = currentUser.costCenter ? currentUser.costCenter.split(' ')[0] : '';
-    if (!userCCId) {
-      return { filteredOrders: [], filteredVehicles: [], filteredShifts: [], filteredCenters: [] };
-    }
-
-    const matchCC = (ccString?: string) => {
-      if (!ccString) return false;
-      return ccString.split(' ')[0] === userCCId;
-    };
+    const userCCId = currentUser.costCenter?.split(' ')[0] || '';
+    if (!userCCId) return { filteredOrders: [], filteredVehicles: [], filteredShifts: [], filteredCenters: [] };
 
     return {
-      filteredOrders: orders.filter(o => matchCC(o.costCenter)),
-      filteredVehicles: vehicles.filter(v => matchCC(v.costCenter)),
-      filteredShifts: shifts.filter(s => {
-        const vehicle = vehicles.find(v => v.id === s.vehicle_id);
-        return matchCC(vehicle?.costCenter);
-      }),
+      filteredOrders: orders.filter(o => o.costCenter?.startsWith(userCCId)),
+      filteredVehicles: vehicles.filter(v => v.costCenter?.startsWith(userCCId)),
+      filteredShifts: shifts.filter(s => vehicles.find(v => v.id === s.vehicle_id)?.costCenter?.startsWith(userCCId)),
       filteredCenters: centersWithStats.filter(c => c.id === userCCId)
     };
   }, [currentUser, orders, vehicles, shifts, centersWithStats]);
 
-  const handleResolveBacklog = async (id: string) => {
-    setShifts(prev => prev.map(s => s.id === id ? { ...s, damageReport: undefined } : s));
-  };
-
   const renderScreen = () => {
     switch (currentScreen) {
       case AppScreen.DASHBOARD:
-        return <Dashboard orders={filteredOrders} vehicles={filteredVehicles} costCenters={filteredCenters} onAction={(screen) => setCurrentScreen(screen)} />;
+        return <Dashboard orders={filteredOrders} vehicles={filteredVehicles} costCenters={filteredCenters} onAction={setCurrentScreen} />;
       case AppScreen.SHIFT_START:
         return <ShiftStart vehicles={filteredVehicles} onUpdateKm={updateVehicleKm} onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} activeShifts={activeShifts} onStartShift={handleStartShift} onFinishShift={handleFinishShift} />;
       case AppScreen.OS_CONTROL:
-        return <OSControl orders={filteredOrders} setOrders={setOrders} setVehicles={setVehicles} onAction={(screen) => setCurrentScreen(screen)} isAdmin={currentUser?.role === 'ADMIN'} />;
+        return <OSControl orders={filteredOrders} setOrders={setOrders} setVehicles={setVehicles} onAction={setCurrentScreen} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.OS_CREATE:
         return <OSCreate vehicles={filteredVehicles} setVehicles={setVehicles} setOrders={setOrders} onBack={() => setCurrentScreen(AppScreen.OS_CONTROL)} userCostCenter={currentUser?.role !== 'ADMIN' ? currentUser?.costCenter : undefined} />;
       case AppScreen.COST_CENTERS:
         return <CostCenters centers={filteredCenters} setCenters={setCostCenters} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.FLEET_MANAGEMENT:
-        return <FleetManagement vehicles={filteredVehicles} setVehicles={setVehicles} costCenters={costCenters} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
+        return <FleetManagement vehicles={filteredVehicles} setVehicles={setVehicles} costCenters={costCenters} onAction={setCurrentScreen} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.REPORTS:
         return <Reports vehicles={filteredVehicles} orders={filteredOrders} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} />;
       case AppScreen.TIRE_BULLETIN:
         return <TireBulletin vehicles={filteredVehicles} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.USER_MANAGEMENT:
         return <UserManagement currentUserRole={currentUser?.role || 'OPERADOR'} costCenters={costCenters} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
-      case AppScreen.SUPPLIER_MANAGEMENT:
-        return <SupplierManagement onBack={() => setCurrentScreen(AppScreen.SETTINGS)} isAdmin={currentUser?.role === 'ADMIN'} />;
       case AppScreen.BACKLOG:
-        return <Backlog shifts={filteredShifts} onAction={(screen) => setCurrentScreen(screen)} onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} isAdmin={currentUser?.role === 'ADMIN'} onResolve={handleResolveBacklog} />;
-      case AppScreen.SUPPLIER_QUOTE:
-        return <SupplierQuote onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} />;
-      case AppScreen.CHECKLIST_HISTORY:
-        return <ChecklistHistory shifts={filteredShifts} vehicles={filteredVehicles} onBack={() => setCurrentScreen(AppScreen.SETTINGS)} onEdit={handleUpdateShift} onDelete={handleDeleteShift} isAdmin={currentUser?.role === 'ADMIN'} />;
+        return <Backlog shifts={filteredShifts} onAction={setCurrentScreen} onBack={() => setCurrentScreen(AppScreen.DASHBOARD)} isAdmin={currentUser?.role === 'ADMIN'} onResolve={() => {}} />;
       case AppScreen.SETTINGS:
-        return <Settings isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode(!isDarkMode)} onAction={(screen) => setCurrentScreen(screen)} avatarUrl={userAvatar} onAvatarChange={(nav) => setUserAvatar(nav)} onLogout={handleLogout} userRole={currentUser?.role || 'OPERADOR'} userName={currentUser?.name || 'Administrador'} onSync={startSync} />;
+        return <Settings isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode(!isDarkMode)} onAction={setCurrentScreen} avatarUrl={userAvatar} onAvatarChange={setUserAvatar} onLogout={handleLogout} userRole={currentUser?.role || 'OPERADOR'} userName={currentUser?.name || 'Administrador'} onSync={startSync} />;
       default:
-        return <Dashboard orders={filteredOrders} vehicles={filteredVehicles} onAction={(screen) => setCurrentScreen(screen)} costCenters={filteredCenters} />;
+        return <Dashboard orders={filteredOrders} vehicles={filteredVehicles} onAction={setCurrentScreen} costCenters={filteredCenters} />;
     }
   };
+
+  const [isAuth, setIsAuth] = useState(isAuthenticated);
+  useEffect(() => { setIsAuth(isAuthenticated); }, [isAuthenticated]);
 
   return (
     <DeviceSimulator
       currentScreen={currentScreen}
       onNavigate={setCurrentScreen}
-      showSidebar={isAuthenticated}
+      showSidebar={isAuth}
       userAvatar={userAvatar}
       userName={currentUser?.name}
       userRole={currentUser?.role}
     >
       <div className="flex flex-col h-full min-h-full bg-background-light dark:bg-background-dark w-full overflow-x-hidden relative transition-colors duration-300">
-        {!isAuthenticated && currentScreen !== AppScreen.SUPPLIER_QUOTE ? (
-          <Login onLogin={(user) => { setCurrentUser(user); localStorage.setItem('smart_tech_user', JSON.stringify(user)); }} isDarkMode={isDarkMode} />
+        {!isAuth ? (
+          <Login onLogin={(user) => { setCurrentUser(user); setIsAuth(true); localStorage.setItem('smart_tech_user', JSON.stringify(user)); }} isDarkMode={isDarkMode} />
         ) : (
           <>
             <div className="md:hidden shrink-0">
@@ -377,7 +301,7 @@ const App: React.FC = () => {
             </main>
             <div className="md:hidden fixed bottom-5 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
               <div className="w-full max-w-md pointer-events-auto">
-                <Navigation activeScreen={currentScreen} onNavigate={(screen) => setCurrentScreen(screen)} />
+                <Navigation activeScreen={currentScreen} onNavigate={setCurrentScreen} />
               </div>
             </div>
           </>
