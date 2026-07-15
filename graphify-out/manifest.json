@@ -1,0 +1,242 @@
+{
+  "App.tsx": {
+    "mtime": 1784135526.123114,
+    "ast_hash": "b03f2dcfa71a662cef8a3ed98abb56cf",
+    "semantic_hash": "b03f2dcfa71a662cef8a3ed98abb56cf"
+  },
+  "android/app/build.gradle": {
+    "mtime": 1784135526.1251905,
+    "ast_hash": "821ef6edcd7510eb7f1829ed54591e20",
+    "semantic_hash": "821ef6edcd7510eb7f1829ed54591e20"
+  },
+  "android/app/capacitor.build.gradle": {
+    "mtime": 1784135526.1251905,
+    "ast_hash": "896f9737d09a3199e87e050a2b187bc0",
+    "semantic_hash": "896f9737d09a3199e87e050a2b187bc0"
+  },
+  "android/app/src/androidTest/java/com/getcapacitor/myapp/ExampleInstrumentedTest.java": {
+    "mtime": 1784135526.1292198,
+    "ast_hash": "c777a4127ae7213f7da22c4105bdfeab",
+    "semantic_hash": "c777a4127ae7213f7da22c4105bdfeab"
+  },
+  "android/app/src/main/java/com/smarttech/app/MainActivity.java": {
+    "mtime": 1784135526.1332407,
+    "ast_hash": "a6dbc00049b11611e061ac60d9ea692b",
+    "semantic_hash": "a6dbc00049b11611e061ac60d9ea692b"
+  },
+  "android/app/src/test/java/com/getcapacitor/myapp/ExampleUnitTest.java": {
+    "mtime": 1784135526.1649806,
+    "ast_hash": "3f8a2768101e4de10f606ea4516fd339",
+    "semantic_hash": "3f8a2768101e4de10f606ea4516fd339"
+  },
+  "android/build.gradle": {
+    "mtime": 1784135526.1649806,
+    "ast_hash": "c505611577091eeaacfdaa999468b196",
+    "semantic_hash": "c505611577091eeaacfdaa999468b196"
+  },
+  "android/capacitor.settings.gradle": {
+    "mtime": 1784135526.1649806,
+    "ast_hash": "7e44c776e1fdcbc628d65648f351a243",
+    "semantic_hash": "7e44c776e1fdcbc628d65648f351a243"
+  },
+  "android/gradlew": {
+    "mtime": 1784135526.1679244,
+    "ast_hash": "f2d3d383787f61a4a99710ee8d780434",
+    "semantic_hash": "f2d3d383787f61a4a99710ee8d780434"
+  },
+  "android/settings.gradle": {
+    "mtime": 1784135526.1689255,
+    "ast_hash": "c609df618dbeec637255380c9f707ccf",
+    "semantic_hash": "c609df618dbeec637255380c9f707ccf"
+  },
+  "android/variables.gradle": {
+    "mtime": 1784135526.1689255,
+    "ast_hash": "94345cf3961a76342c61b66e3de018a6",
+    "semantic_hash": "94345cf3961a76342c61b66e3de018a6"
+  },
+  "capacitor.config.ts": {
+    "mtime": 1784135526.1689255,
+    "ast_hash": "05f350b1c9822617df263b202b1aa2cb",
+    "semantic_hash": "05f350b1c9822617df263b202b1aa2cb"
+  },
+  "components/Backlog.tsx": {
+    "mtime": 1784135526.170429,
+    "ast_hash": "2c29d4406a3886437e816ea2ef4dc334",
+    "semantic_hash": "2c29d4406a3886437e816ea2ef4dc334"
+  },
+  "components/ChecklistHistory.tsx": {
+    "mtime": 1784135526.17143,
+    "ast_hash": "fdeb75c9f6fce305428573d69a45cbc5",
+    "semantic_hash": "fdeb75c9f6fce305428573d69a45cbc5"
+  },
+  "components/CostCenters.tsx": {
+    "mtime": 1784135526.1724303,
+    "ast_hash": "dc08a9d096c92679a00ddc0211507df7",
+    "semantic_hash": "dc08a9d096c92679a00ddc0211507df7"
+  },
+  "components/Dashboard.tsx": {
+    "mtime": 1784135526.1724303,
+    "ast_hash": "7139de2bf08bf86772d424afc6b75983",
+    "semantic_hash": "7139de2bf08bf86772d424afc6b75983"
+  },
+  "components/DeviceSimulator.tsx": {
+    "mtime": 1784135526.1737423,
+    "ast_hash": "6d429a81546e0f73957483a8991342b5",
+    "semantic_hash": "6d429a81546e0f73957483a8991342b5"
+  },
+  "components/FleetManagement.tsx": {
+    "mtime": 1784135526.1737423,
+    "ast_hash": "264808a4b8ad98f27a4d1077d7cbe595",
+    "semantic_hash": "264808a4b8ad98f27a4d1077d7cbe595"
+  },
+  "components/Header.tsx": {
+    "mtime": 1784135526.1737423,
+    "ast_hash": "31a6239cab5285de34ce889dde26a44f",
+    "semantic_hash": "31a6239cab5285de34ce889dde26a44f"
+  },
+  "components/Login.tsx": {
+    "mtime": 1784135526.1752462,
+    "ast_hash": "6194f93f71f56fca45107146e5b63a6c",
+    "semantic_hash": "6194f93f71f56fca45107146e5b63a6c"
+  },
+  "components/Logo.tsx": {
+    "mtime": 1784135526.1752462,
+    "ast_hash": "5aff95a951100525a300fcfea5eb0f7a",
+    "semantic_hash": "5aff95a951100525a300fcfea5eb0f7a"
+  },
+  "components/MaintenanceList.tsx": {
+    "mtime": 1784135526.1752462,
+    "ast_hash": "af93dbf1cb5b33b3275e7235bfa2c011",
+    "semantic_hash": "af93dbf1cb5b33b3275e7235bfa2c011"
+  },
+  "components/Navigation.tsx": {
+    "mtime": 1784135526.1762588,
+    "ast_hash": "a0cd05df6a666c548702a5f68ec55d9f",
+    "semantic_hash": "a0cd05df6a666c548702a5f68ec55d9f"
+  },
+  "components/OSControl.tsx": {
+    "mtime": 1784135526.1762588,
+    "ast_hash": "c348bc2beec6eb4a11b5b69887c73570",
+    "semantic_hash": "c348bc2beec6eb4a11b5b69887c73570"
+  },
+  "components/OSCreate.tsx": {
+    "mtime": 1784135526.177289,
+    "ast_hash": "cb53fbc7f557163200cd77676617f3cb",
+    "semantic_hash": "cb53fbc7f557163200cd77676617f3cb"
+  },
+  "components/Reports.tsx": {
+    "mtime": 1784135526.177289,
+    "ast_hash": "bb11b1ad9b0da0f3379d5d7e1366c30d",
+    "semantic_hash": "bb11b1ad9b0da0f3379d5d7e1366c30d"
+  },
+  "components/Settings.tsx": {
+    "mtime": 1784135526.177289,
+    "ast_hash": "fc4dbd94dc07aaf49c5a3345d3092aef",
+    "semantic_hash": "fc4dbd94dc07aaf49c5a3345d3092aef"
+  },
+  "components/ShiftEnd.tsx": {
+    "mtime": 1784135526.1783159,
+    "ast_hash": "1d6639c41e443312fdc69bbce45188b6",
+    "semantic_hash": "1d6639c41e443312fdc69bbce45188b6"
+  },
+  "components/ShiftStart.tsx": {
+    "mtime": 1784135526.1783159,
+    "ast_hash": "75f591efcdc45027a3ef112781f2acdf",
+    "semantic_hash": "75f591efcdc45027a3ef112781f2acdf"
+  },
+  "components/SupplierManagement.tsx": {
+    "mtime": 1784135526.179338,
+    "ast_hash": "1340d727d1b6701d4c95dd0c4319920d",
+    "semantic_hash": "1340d727d1b6701d4c95dd0c4319920d"
+  },
+  "components/SupplierQuote.tsx": {
+    "mtime": 1784135526.179338,
+    "ast_hash": "7724493e0be6c8747a60bf0ed88e5f1e",
+    "semantic_hash": "7724493e0be6c8747a60bf0ed88e5f1e"
+  },
+  "components/TireBulletin.tsx": {
+    "mtime": 1784135526.1806831,
+    "ast_hash": "70856a97790c0b56a0a991b4b93322d1",
+    "semantic_hash": "70856a97790c0b56a0a991b4b93322d1"
+  },
+  "components/UserManagement.tsx": {
+    "mtime": 1784135526.1806831,
+    "ast_hash": "0c11b465324be64e6391123253b38f84",
+    "semantic_hash": "0c11b465324be64e6391123253b38f84"
+  },
+  "index.tsx": {
+    "mtime": 1784135526.181751,
+    "ast_hash": "0ca0b0d1973371ac166f15c742540fb9",
+    "semantic_hash": "0ca0b0d1973371ac166f15c742540fb9"
+  },
+  "manifest.json": {
+    "mtime": 1784135526.1827548,
+    "ast_hash": "ba0eeaee153fecabf8f42b0e493903d9",
+    "semantic_hash": "ba0eeaee153fecabf8f42b0e493903d9"
+  },
+  "metadata.json": {
+    "mtime": 1784135526.1827548,
+    "ast_hash": "a7ddfae4d1a07838b75e44c3c3a8b544",
+    "semantic_hash": "a7ddfae4d1a07838b75e44c3c3a8b544"
+  },
+  "package.json": {
+    "mtime": 1784135526.1837573,
+    "ast_hash": "27e443e634bcf8d920dd89c8da82316e",
+    "semantic_hash": "27e443e634bcf8d920dd89c8da82316e"
+  },
+  "services/geminiService.ts": {
+    "mtime": 1784135526.1908827,
+    "ast_hash": "f514c57ec1e14491da49802ff45c2d7d",
+    "semantic_hash": "f514c57ec1e14491da49802ff45c2d7d"
+  },
+  "services/supabaseClient.ts": {
+    "mtime": 1784135526.1919272,
+    "ast_hash": "1d1f724d3acf8e35c649f2857a1228ee",
+    "semantic_hash": "1d1f724d3acf8e35c649f2857a1228ee"
+  },
+  "sw.js": {
+    "mtime": 1784135526.1919272,
+    "ast_hash": "dc9f658698fc70852d3f73dc013c3985",
+    "semantic_hash": "dc9f658698fc70852d3f73dc013c3985"
+  },
+  "temp_plates.json": {
+    "mtime": 1784135526.1919272,
+    "ast_hash": "0e61ac87d8fe870709bc0109a195235a",
+    "semantic_hash": "0e61ac87d8fe870709bc0109a195235a"
+  },
+  "tsconfig.json": {
+    "mtime": 1784135526.1932914,
+    "ast_hash": "71fb1232c4ed18547bc61a3e882cd1f3",
+    "semantic_hash": "71fb1232c4ed18547bc61a3e882cd1f3"
+  },
+  "types.ts": {
+    "mtime": 1784135526.1932914,
+    "ast_hash": "e0f37eff06d1d8c92ca71cde43c095e8",
+    "semantic_hash": "e0f37eff06d1d8c92ca71cde43c095e8"
+  },
+  "vite-env.d.ts": {
+    "mtime": 1784135526.1932914,
+    "ast_hash": "8f68c27c3fc38817b2726b20e2d4f1ee",
+    "semantic_hash": "8f68c27c3fc38817b2726b20e2d4f1ee"
+  },
+  "vite.config.ts": {
+    "mtime": 1784135526.1945722,
+    "ast_hash": "41eb8f50a0be2af5cc57ff31d6bc80f9",
+    "semantic_hash": "41eb8f50a0be2af5cc57ff31d6bc80f9"
+  },
+  "COMO_GERAR_APK.md": {
+    "mtime": 1784135526.123114,
+    "ast_hash": "81e274f9d430c1f3259d6d993444a70f",
+    "semantic_hash": "81e274f9d430c1f3259d6d993444a70f"
+  },
+  "README.md": {
+    "mtime": 1784135526.12419,
+    "ast_hash": "966457546b50d126464cc8dda771babf",
+    "semantic_hash": "966457546b50d126464cc8dda771babf"
+  },
+  "index.html": {
+    "mtime": 1784135526.181751,
+    "ast_hash": "09ccdce4d2f8be87c5228037eeb6876b",
+    "semantic_hash": "09ccdce4d2f8be87c5228037eeb6876b"
+  }
+}
